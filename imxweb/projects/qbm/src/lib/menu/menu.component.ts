@@ -77,6 +77,11 @@ export class MenuComponent {
     return itemIsActive;
   }
 
+  //Routing to the csv importer component
+  public GoToCsvImporter(): void {
+    this.router.navigate(['csv-importer']);
+  }
+
   public navigate(item: MenuItem): void {
     if (item.trigger) {
       this.logger.debug(this, 'call trigger');

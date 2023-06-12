@@ -63,6 +63,8 @@ import { UserModule } from './user/user.module';
 import { ShoppingCartValidationDetailModule } from './shopping-cart-validation-detail/shopping-cart-validation-detail.module';
 import { RoleMembershipsModule } from './role-management/role-memberships/role-memberships.module';
 import { SupportInformationComponent } from './support-information/support-information.component';
+import { CsvImporterComponent } from './csv-importer/csv-importer.component';
+
 
 export function initConfig(config: QerService): () => Promise<any> {
   return () =>
@@ -85,7 +87,7 @@ const routes: Routes = [
 
 // @dynamic
 @NgModule({
-  declarations: [StarlingComponent, StartComponent, BusinessOwnerChartSummaryComponent, SupportInformationComponent],
+  declarations: [StarlingComponent, StartComponent, BusinessOwnerChartSummaryComponent, SupportInformationComponent, CsvImporterComponent],
   imports: [
     CommonModule,
     RouterModule.forChild(routes),

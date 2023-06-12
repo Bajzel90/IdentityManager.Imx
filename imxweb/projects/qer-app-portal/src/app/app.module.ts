@@ -34,7 +34,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { EuiCoreModule, EuiMaterialModule } from '@elemental-ui/core';
 import { LoggerModule, NgxLoggerLevel } from 'ngx-logger';
 import { TranslateModule, TranslateLoader, MissingTranslationHandler, TranslateService } from '@ngx-translate/core';
-
+import { CsvImporterModule } from 'projects/qer/src/lib/csv-importer/csv-importer.module';
 import {
   CdrRegistryService,
   GlobalErrorHandler,
@@ -125,7 +125,8 @@ import { PortalHistoryService } from './portal-history.service';
     RequestConfigModule,
     RequestHistoryModule,
     ServiceCategoriesModule,
-    ServiceItemsEditModule
+    ServiceItemsEditModule,
+    CsvImporterModule,
   ],
   providers: [
     { provide: 'environment', useValue: environment },

@@ -1,0 +1,56 @@
+@import "variables.scss";
+.table-container{
+  display:flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin:0 auto;
+  width:100%;
+
+  table {
+    border-collapse: collapse;
+      th {
+        background-color: $iris-blue;
+        color: $white;
+        text-align: left;        
+          &:nth-child(1) {
+            width: 50%;
+          }
+          
+          &:nth-child(2), &:nth-child(3) {
+            width: 5%;
+          }
+      }  
+      td{
+        color: $VI_Common_Color_Font;
+        background-color: $white;        
+          &:nth-child(1) {
+            width: 50%;
+          }        
+          &:nth-child(2), &:nth-child(3) {
+            width: 5%;
+          }
+      }
+  }
+}
+
+.uploader-container{
+  display:flex;
+  justify-content: center;
+  position:sticky;
+  margin-top: 10px;
+
+  input[type="file"]{
+    display: none;
+  }   
+  .btn-uploader{
+    padding: 10px;
+    border-radius: 5px;
+    background-color: $iris-blue;
+    color: $white;
+    position: sticky;
+    &:hover{
+      cursor: pointer;
+      background-color: $VI_Common_Color_Blue_1;
+    }
+  }     
+}

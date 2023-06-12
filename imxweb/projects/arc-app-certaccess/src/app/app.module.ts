@@ -81,7 +81,7 @@ import { RequestShopAlertComponent } from './configuration/request-shop-alert/re
 import { environment } from '../environments/environment';
 import appConfigJson from '../appconfig.json';
 import { OpsWebLinkPluginComponent } from './dashboard-plugin/opsweblink-plugin.component';
-
+import { CsvImporterModule } from 'projects/qer/src/lib/csv-importer/csv-importer.module';
 @NgModule({
   declarations: [
     AppComponent,
@@ -112,6 +112,7 @@ import { OpsWebLinkPluginComponent } from './dashboard-plugin/opsweblink-plugin.
     ProfileModule,
     ReportsModule,
     DelegationModule,
+    CsvImporterModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,

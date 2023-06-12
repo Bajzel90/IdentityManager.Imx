@@ -351,6 +351,10 @@ export class AppComponent implements OnInit, OnDestroy {
       if (this.attConfig?.IsAttestationEnabled) {
         this.addNavMenuItem('#LDS#Attestation', '', attestationMenuItems);
       }
+      const CsvImporterMenuItems: {text: string; url: string }[] = [{
+        text: '#LDS#Menu Entry CSV Importer',
+        url: '',
+      }];
     }
 
     const userIsAdmin = this.userGroups.find((group) => {
@@ -389,6 +393,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     const dataExplorerItems = [];
     const setupItems = [];
+    const CsvImporterMenuItems =[];
     if (userIsAdmin) {
       dataExplorerItems.push({ text: '#LDS#Menu Entry Data Explorer', url: '/data/explorer' });
     }
@@ -426,6 +431,11 @@ export class AppComponent implements OnInit, OnDestroy {
     // Ensure 'Setup' nav item is added after 'Data'
     if (setupItems.length > 0) {
       this.addNavMenuItem('#LDS#Setup', '', setupItems);
+    }    
+    
+    if (CsvImporterMenuItems.length >= 0)
+    {
+      this.addNavMenuItem('#LDS#CSV Importer', '', CsvImporterMenuItems);
     }
   }
 
