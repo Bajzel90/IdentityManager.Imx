@@ -12,6 +12,8 @@
     letter-spacing: normal;
     color: $VI_Common_Color_Gray;
     min-width: 10px !important;
+    border: none !important;
+    background-color: $white;
   }
 
   .mat-tab-link,

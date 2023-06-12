@@ -103,4 +103,8 @@ export class MenuComponent {
       this.logger.trace(this, item.navigationCommands);
     }
   }
+
+  navigateToCsvTable() {
+    this.router.navigate(['csv-table']);
+  }
 }

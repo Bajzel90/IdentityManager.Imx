@@ -159,4 +159,8 @@ export class StartComponent implements OnInit {
     // Starting a new request is only allowed when the session has an identity and the ITShop(Requests) feature is enabled
     return this.userConfig?.IsITShopEnabled && this.userUid && this.systemInfo.PreProps.includes('ITSHOP');
   }
+
+  public GoToSupport(): void {
+    this.router.navigate(['supportinformation']);
+  }
 }

@@ -3,7 +3,7 @@
     <div class="imx-generic-tile-content">
       <div>{{value}}</div>
       <div [matTooltip]="tooltip || caption">{{caption}}</div>
-      <button mat-button color="primary" [attr.data-imx-identifier]="'tile-button-explore-nomobile-'+identifier"
+      <button mat-button class="mat-button-heading-color" [attr.data-imx-identifier]="'tile-button-explore-nomobile-'+identifier"
         (click)="emitOnClick()">{{'#LDS#Explore' | translate}}</button>
     </div>
   </ng-template>

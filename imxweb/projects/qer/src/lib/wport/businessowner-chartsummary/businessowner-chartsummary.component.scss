@@ -1,4 +1,5 @@
 @import '~@elemental-ui/core/src/styles/_palette.scss';
+@import "variables.scss";
 
 :host {
   display: flex;
@@ -104,4 +105,7 @@
 
 .imx-colright {
   text-align: right;
+}
+.mat-button-heading-color{
+  color: $tangerine;
 }

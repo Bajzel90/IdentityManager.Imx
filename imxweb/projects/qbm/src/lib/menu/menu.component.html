@@ -1,10 +1,15 @@
 <nav mat-tab-nav-bar>
   <ng-container *ngIf="menuItems">
     <span *ngFor="let item of menuItems">
-      <a mat-tab-link *ngIf="!item.items" (click)="navigate(item)" [attr.data-imx-identifier]="item.id" (keyup.enter)="navigate(item)" [active]="isActive(item)">
+      <a mat-tab-link *ngIf="!item.items && item.id !== 'ROOT_CSV_Table'" (click)="navigate(item)" [attr.data-imx-identifier]="item.id" (keyup.enter)="navigate(item)" [active]="isActive(item)">
         {{ item.title | translate }}
       </a>
-      <ng-container *ngIf="item.items">
+      <button mat-tab-link
+      *ngIf="item.id === 'ROOT_CSV_Table'" (click)="navigateToCsvTable()" [attr.data-imx-identifier]="item.id" (keyup.enter)="navigate(item)"
+      [active]="isActive(item)" >
+      {{ item.title | translate }}
+      </button>
+      <ng-container *ngIf="item.items && item.id !== 'ROOT_CSV_Table' && item.id !== 'ROOT_Setup' && item.id !== 'ROOT_Responsibilities'">
         <a mat-tab-link [matMenuTriggerFor]="submenu" (keyup.tab)="submenuTrigger.openMenu()" [attr.data-imx-identifier]="item.id"
           (keyup.shift.tab)="submenuTrigger.openMenu()" #submenuTrigger="matMenuTrigger" [active]="isActive(item)">
           {{ item.title | translate }}

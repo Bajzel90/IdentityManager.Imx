@@ -1,0 +1,21 @@
+@import "variables.scss";
+
+.title {
+  color: $charcoal_gray;
+  font-size: 26px;
+  padding-bottom: 20px;
+}
+.subtitle {
+  color: $tangerine;
+  font-size: 18px;
+  padding-bottom: 20px;
+}
+.details {
+  color: $dim_grey;
+  font-size: 16px;
+  padding-bottom: 20px;
+}
+.link {
+  color: $sky_blue;
+  font-size: 16px;
+}

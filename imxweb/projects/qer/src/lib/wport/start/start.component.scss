@@ -1,4 +1,5 @@
 @import '../../../../../qbm/src/lib/tile/tile-variables.scss';
+@import "variables.scss";
 
 :host {
   display: flex;
@@ -38,3 +39,10 @@
 .mat-button ::ng-deep eui-icon{
   margin-left: 15px;
 }
+.mat-button-heading-color{
+  color: $tangerine;
+}
+.cart-icon svg {
+  fill: $tangerine;
+}
+

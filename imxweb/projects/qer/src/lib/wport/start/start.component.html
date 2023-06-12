@@ -5,7 +5,7 @@
     <imx-badge-tile
       data-imx-identifier="start-tile-shopping-cart"
       [caption]="'#LDS#Heading Products in Shopping Cart' | translate"
-      *ngIf="userConfig?.IsITShopEnabled && GetCountProductsinShoppingCart() > 0"
+      *ngIf="userConfig?.IsITShopEnabled"
       [value]="GetCountProductsinShoppingCart()"
       [identifier]="'shopping-cart'"
       (actionClick)="GoToShoppingCart()"
@@ -15,8 +15,8 @@
     <imx-badge-tile
       data-imx-identifier="start-tile-it-shop-approvals"
       [caption]="'#LDS#Heading Pending Requests' | translate"
+      *ngIf="userConfig?.IsITShopEnabled"
       [tooltip]="'#LDS#Shows the pending requests you can approve or deny.' | translate"
-      *ngIf="userConfig?.IsITShopEnabled && GetCountPendingRequests() > 0"
       [value]="GetCountPendingRequests()"
       [identifier]="'it-shop-approvals'"
       (actionClick)="GoToItshopApprovals()"
@@ -25,15 +25,15 @@
 
     <imx-badge-tile
       data-imx-identifier="start-tile-request-history"
-      [caption]="'#LDS#Heading My Pending Requests' | translate"
+      [caption]="'#LDS#My Pending Requests' | translate"
+      *ngIf="userConfig?.IsITShopEnabled"
       [tooltip]="'#LDS#Shows your pending requests others can approve or deny.' | translate"
-      *ngIf="userConfig?.IsITShopEnabled && GetCountInRequestHistory() > 0"
       [value]="GetCountInRequestHistory()"
       [identifier]="'request-history'"
       (actionClick)="router.navigate(['requesthistory'], { queryParams: { ShowMyPending: 1 } })"
     >
     </imx-badge-tile>
-
+  
     <imx-badge-tile
       data-imx-identifier="start-tile-it-shop-approval-inquiries"
       [caption]="'#LDS#Heading Request Inquiries' | translate"
@@ -61,7 +61,7 @@
       [identifier]="'requests ending soon'"
       (actionClick)="router.navigate(['requesthistory'], { queryParams: { ShowEndingSoon: 1 } })"
     ></imx-badge-tile>
-
+  
     <imx-ext class="imx-flexible-tile-row" id="Dashboard-SmallTiles" [referrer]="this"></imx-ext>
   </div>
   <div class="imx-flexible-tile-row">
@@ -78,9 +78,9 @@
       [identifier]="'no-password-query-and-answer-set'"
     >
       <ng-template #ActionTemplate>
-        <button mat-button color="primary" [attr.data-imx-identifier]="'imx-start-button-password-questions'" (click)="GoToMyPassword()">
+        <button mat-button class="mat-button-heading-color" [attr.data-imx-identifier]="'imx-start-button-password-questions'" (click)="GoToMyPassword()">
           <span>{{ '#LDS#Specify password questions' | translate }}</span>
-          <eui-icon size="m" icon="forward"></eui-icon>
+          <eui-icon size="m" icon="forward" class="mat-button-heading-color"></eui-icon>
         </button>
       </ng-template>
     </imx-icon-tile>
@@ -96,9 +96,9 @@
       [image]="'key'"
     >
       <ng-template #ActionTemplate>
-        <button mat-button color="primary" [attr.data-imx-identifier]="'imx-start-button-password-manager'" (click)="GoToQpm()">
+        <button mat-button class="mat-button-heading-color" [attr.data-imx-identifier]="'imx-start-button-password-manager'" (click)="GoToQpm()">
           <span>{{ '#LDS#Open Password Manager' | translate }}</span>
-          <eui-icon size="m" icon="forward"></eui-icon>
+          <eui-icon size="m" icon="forward" class="mat-button-heading-color"></eui-icon>
         </button>
       </ng-template>
     </imx-icon-tile>
@@ -112,25 +112,25 @@
       [image]="'key'"
     >
       <ng-template #ActionTemplate>
-        <button mat-button color="primary" [attr.data-imx-identifier]="'imx-start-button-manage-password'" (click)="GoToPasswordMgmtWeb()">
+        <button class="mat-button-heading-color" [attr.data-imx-identifier]="'imx-start-button-manage-password'" (click)="GoToPasswordMgmtWeb()">
           <span>{{ '#LDS#Manage passwords' | translate }}</span>
-          <eui-icon size="m" icon="forward"></eui-icon>
+          <eui-icon size="m" icon="forward" class="mat-button-heading-color"></eui-icon>
         </button>
       </ng-template>
     </imx-icon-tile>
 
-    <imx-icon-tile
+    <imx-icon-tile 
       data-imx-identifier="start-tile-start-a-new-request"
       [caption]="'#LDS#Heading New Request' | translate"
       [subtitle]="'#LDS#Request products for yourself or for others.' | translate"
-      [image]="'cart'"
+      [image]="'cart'" class="cart-icon"
       [identifier]="'start-a-new-request'"
       *ngIf="ShowNewRequestLink()"
     >
       <ng-template #ActionTemplate>
-        <button mat-button color="primary" [attr.data-imx-identifier]="'imx-start-button-new-request'" (click)="GoToProductSelection()">
+        <button mat-button class="mat-button-heading-color" [attr.data-imx-identifier]="'imx-start-button-new-request'" (click)="GoToProductSelection()">
           <span>{{ '#LDS#Request products' | translate }}</span>
-          <eui-icon size="m" icon="forward"></eui-icon>
+          <eui-icon size="m" icon="forward" class="mat-button-heading-color"></eui-icon>
         </button>
       </ng-template>
     </imx-icon-tile>
@@ -144,6 +144,19 @@
       (actionClick)="GoToItShopApprovalInquiries()"
     >
     </imx-tile>
+
+    <imx-icon-tile 
+    data-imx-identifier="start-tile-support-information"
+    [caption]="'#LDS#Support Information' | translate"
+    [identifier]="'support-information'"
+  >
+    <ng-template #ActionTemplate>
+      <button mat-button class="mat-button-heading-color" (click)="GoToSupport()">
+        <span>{{ '#LDS#Support Information' | translate }}</span>
+        <eui-icon size="m" icon="forward" class="mat-button-heading-color"></eui-icon>
+      </button>
+    </ng-template>
+  </imx-icon-tile>
 
     <imx-ext id="Dashboard-MediumTiles"></imx-ext>
   </div>

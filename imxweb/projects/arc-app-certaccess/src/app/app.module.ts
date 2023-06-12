@@ -63,6 +63,8 @@ import {
   DelegationModule,
   RoleManangementModule
 } from 'qer';
+
+import { CsvTableModule } from 'projects/qer/src/lib/csv-table/csv-table.module';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { CommonModule } from '@angular/common';
 import { DataExplorerModule } from './data-explorer/data-explorer.module';
@@ -97,6 +99,7 @@ import { OpsWebLinkPluginComponent } from './dashboard-plugin/opsweblink-plugin.
     PolicyModule,
     AppRoutingModule,
     BrowserAnimationsModule,
+    CsvTableModule,
     BrowserModule,
     EuiCoreModule,
     EuiMaterialModule,

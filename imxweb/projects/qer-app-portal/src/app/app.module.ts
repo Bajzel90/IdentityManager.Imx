@@ -78,6 +78,7 @@ import { PortalStarlingService } from './portal-starling.service';
 import { environment } from '../environments/environment';
 import appConfigJson from '../appconfig.json';
 import { PortalHistoryService } from './portal-history.service';
+import { CsvTableModule } from 'projects/qer/src/lib/csv-table/csv-table.module';
 
 @NgModule({
   declarations: [
@@ -97,6 +98,7 @@ import { PortalHistoryService } from './portal-history.service';
     MatTabsModule,
     MastHeadModule,
     MenuModule,
+    CsvTableModule,
     AddressbookModule,
     QbmModule,
     QerModule,

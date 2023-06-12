@@ -4,7 +4,7 @@
    [subtitle]="'#LDS#Allow this website to send you notifications.' | translate "
    [identifier]="'no-password-query-and-answer-set'" >
    <ng-template #ActionTemplate>
-      <button mat-button color="primary" [attr.data-imx-identifier]="'imx-start-button-turn-on-notifications'"
+      <button mat-button class="mat-button-heading-color" [attr.data-imx-identifier]="'imx-start-button-turn-on-notifications'"
         (click)="requestNotificationPermission()">
         <span>{{'#LDS#Allow notifications' | translate}}</span>
       </button>

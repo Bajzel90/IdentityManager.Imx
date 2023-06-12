@@ -30,30 +30,23 @@ import { Routes, RouterModule, Router } from '@angular/router';
 import { RouteGuardService } from 'qbm';
 import { RequestsComponent } from 'qer';
 import { AdminGuardService } from './services/admin-guard.service';
+import { CsvTableComponent } from 'projects/qer/src/lib/csv-table/csv-table.component';
 
 const routes: Routes = [
-  {
-    path: 'configuration/requests',
+  { path: 'configuration/requests',
     component: RequestsComponent,
     canActivate: [RouteGuardService, AdminGuardService],
     resolve: [RouteGuardService]
   },
+  { path: 'csv-table', component: CsvTableComponent }, 
   { path: '**', redirectTo: 'dashboard' },
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot([], { useHash: true, relativeLinkResolution: 'legacy', enableTracing: true  })],
+  imports: [RouterModule.forRoot(routes, { useHash: true, relativeLinkResolution: 'legacy', enableTracing: true })],
   exports: [RouterModule],
 })
 export class AppRoutingModule {
-  constructor(
-    router: Router
-  ) {
-
-    const config = router.config;
-    routes.forEach(route => {
-      config.push(route);
-    });
-    router.resetConfig(config);
+  constructor(router: Router) {
   }
 }

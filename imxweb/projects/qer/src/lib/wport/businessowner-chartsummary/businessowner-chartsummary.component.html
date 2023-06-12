@@ -7,7 +7,7 @@
   <div class="imx-tile-content">
     <ul class="imx-valuelist">
       <li *ngFor="let currentOwnerships of ownerships">
-        <a (click)="openOwnership(currentOwnerships)" tabindex="0">
+        <a (click)="openOwnership(currentOwnerships)">
           <span class="imx-col imx-col80">{{currentOwnerships.TableNameDisplay}}</span>
           <span class="imx-col imx-col20 imx-colright">{{currentOwnerships.Count}}</span>
         </a>
@@ -39,7 +39,7 @@
         </button>
       </div>
       <div class="imx-mobile-nomobile">
-        <button mat-button color="primary" [attr.data-imx-identifier]="'tile-button-explore-nomobile-reports'"
+        <button mat-button class="mat-button-heading-color" [attr.data-imx-identifier]="'tile-button-explore-nomobile-reports'"
           (click)="openIdentitiesOverview()">{{'#LDS#View' | translate}}</button>
       </div>
     </div>
@@ -47,7 +47,7 @@
   <div class="imx-tile-content">
     <ul class="imx-valuelist">
       <li *ngFor="let identity of reports">
-        <a (click)="openIdentitySidesheet(identity)" tabindex="0">{{identity.GetEntity().GetDisplay()}}</a>
+        <a (click)="openIdentitySidesheet(identity)">{{identity.GetEntity().GetDisplay()}}</a>
       </li>
     </ul>
   </div>

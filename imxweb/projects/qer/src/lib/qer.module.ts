@@ -62,6 +62,7 @@ import { TilesModule } from './tiles/tiles.module';
 import { UserModule } from './user/user.module';
 import { ShoppingCartValidationDetailModule } from './shopping-cart-validation-detail/shopping-cart-validation-detail.module';
 import { RoleMembershipsModule } from './role-management/role-memberships/role-memberships.module';
+import { SupportinformationComponent } from './supportinformation/supportinformation.component';
 
 export function initConfig(config: QerService): () => Promise<any> {
   return () =>
@@ -80,11 +81,17 @@ const routes: Routes = [
     canActivate: [RouteGuardService],
     resolve: [RouteGuardService],
   },
+  {
+    path: 'supportinformation',
+    component: SupportinformationComponent,
+    canActivate: [RouteGuardService],
+    resolve: [RouteGuardService]
+  }
 ];
 
 // @dynamic
 @NgModule({
-  declarations: [StarlingComponent, StartComponent, BusinessOwnerChartSummaryComponent],
+  declarations: [StarlingComponent, StartComponent, BusinessOwnerChartSummaryComponent, SupportinformationComponent],
   imports: [
     CommonModule,
     RouterModule.forChild(routes),
@@ -110,7 +117,7 @@ const routes: Routes = [
     ShoppingCartValidationDetailModule,
     FkAdvancedPickerModule,
     OpsModule,
-    DataExplorerViewModule,
+    DataExplorerViewModule
   ],
   exports: [StarlingComponent, PasscodeViewerComponent, ObjectOverviewPersonComponent],
   providers: [

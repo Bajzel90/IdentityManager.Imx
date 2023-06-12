@@ -272,6 +272,17 @@ describe('StartComponent', () => {
   });
 
 
+  it('should navigate to SupportInformation page', () => {
+    expect(() => {
+      // Act
+      component.GoToSupport();
+
+      // Assert
+      expect(navigateSpy).toHaveBeenCalledWith(['supportinformation']);
+    }).not.toThrowError();
+  });
+
+
   it('should navigate to ItShopApprovals page', () => {
     expect(() => {
       // Act
