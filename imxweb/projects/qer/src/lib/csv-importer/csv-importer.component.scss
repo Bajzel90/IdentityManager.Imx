@@ -1,0 +1,83 @@
+@import "variables.scss";
+
+.container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  margin: 0 auto;
+
+  table {
+    table-layout: fixed;
+    width: 90%;
+    border-collapse: collapse;
+    border: 1.5px solid black;
+    
+    thead {
+      th {
+        background-color: $Task3_Orange2;
+        font-weight: bold;
+        color: black;
+        padding: 9px;
+        border: 2px solid black;
+      }
+    }
+
+    tbody tr {
+      td {
+        border: 1.5px solid black;
+      }
+      
+      border: 1.5px solid black;
+      text-align: center;
+      &:nth-child(odd) {
+        background-color: $Imx_Ellipse_Gray;
+        &:hover {
+          background-color: $VI_Common_Color_Gray;
+          color: white;
+        }
+      }
+      &:nth-child(even) {
+        background-color: $VI_Common_Color_Button_Font_Disabled;
+        &:hover {
+          background-color: $VI_Common_Color_Gray;
+          color: white;
+        }
+      }
+    }
+  }
+
+  .fileUpload {
+    display: flex;
+    align-items: flex-start;
+    position: sticky;
+    margin-right: 10px;
+  
+    .uploadBtn {
+      padding: 9px;
+      position: sticky;
+  
+      font-size: 16px;
+      font-weight: bold;
+      white-space: nowrap;
+  
+      background-color: $Task3_Orange2;
+      color: white;
+      border: 2px solid black;
+      transition: background-color 0.2s;
+  
+      &:hover {
+        background-color: white;
+        color: $Task3_Orange2;
+        border: 2px solid black;
+        cursor: pointer;
+      }
+    }
+  
+    input[type="file"] {
+      display: none;
+    }
+  }
+}
+
+

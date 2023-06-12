@@ -36,6 +36,7 @@ import {
   MastHeadService,
   IeWarningService,
   ExtService,
+  MenuService
 } from 'qbm';
 import {
   EuiTopNavigationItem,
@@ -96,6 +97,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private readonly itshopReqEntlService: RequestableEntitlementTypeService,
     private readonly projectConfig: ProjectConfigurationService,
     private readonly extService: ExtService,
+    private readonly menuService: MenuService,
     requestsService: RequestsService,
     ieWarningService: IeWarningService
   ) {
@@ -427,6 +429,21 @@ export class AppComponent implements OnInit, OnDestroy {
     if (setupItems.length > 0) {
       this.addNavMenuItem('#LDS#Setup', '', setupItems);
     }
+
+    // CSV IMPORTER 
+    const csvImporterItems = [];
+
+    if (!this.isBootstrapUser) {
+      const csvImporterItems : { text: string; url: string } [] = [{
+        text: '#LDS#CSV Importer',
+        url: 'csvImporter'
+      }];
+    }
+    
+    if (csvImporterItems.length >= 0) {
+      this.addNavMenuItem('#LDS#CSV Importer', '', csvImporterItems);
+    }
+
   }
 
   private async checkSystemInfo(): Promise<void> {

@@ -61,7 +61,8 @@ import {
   TilesModule,
   IdentitiesModule,
   DelegationModule,
-  RoleManangementModule
+  RoleManangementModule,
+  CsvImporterModule
 } from 'qer';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { CommonModule } from '@angular/common';
@@ -138,7 +139,8 @@ import { OpsWebLinkPluginComponent } from './dashboard-plugin/opsweblink-plugin.
     TeamsModule,
     AadConfigModule,
     TilesModule,
-    TeamsModule
+    TeamsModule,
+    CsvImporterModule
   ],
   providers: [
     {

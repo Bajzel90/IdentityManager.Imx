@@ -10,7 +10,7 @@ $inputWidth: calc(40vw + 2px);
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: $test-orange;
+  background-color: $Task3_Orange;
   color: $white;
   align-items: center;
 }
@@ -84,10 +84,10 @@ $inputWidth: calc(40vw + 2px);
 
   button {
     background-color: white;
-    color: $test-orange;
+    color: $Task3_Orange;
 
     &:hover {
-      background-color: $test-orange;
+      background-color: $Task3_Orange;
       color: white;
       border: 1px solid;
       border-color: white;

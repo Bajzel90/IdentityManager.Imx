@@ -3,17 +3,19 @@
     <span *ngFor="let item of menuItems">
       <a mat-tab-link *ngIf="!item.items" (click)="navigate(item)" [attr.data-imx-identifier]="item.id" (keyup.enter)="navigate(item)" [active]="isActive(item)">
         {{ item.title | translate }}
-      </a>
+      </a>    
       <ng-container *ngIf="item.items">
-        <a mat-tab-link [matMenuTriggerFor]="submenu" (keyup.tab)="submenuTrigger.openMenu()" [attr.data-imx-identifier]="item.id"
-          (keyup.shift.tab)="submenuTrigger.openMenu()" #submenuTrigger="matMenuTrigger" [active]="isActive(item)">
+        <a mat-tab-link *ngIf="(item.id !== 'ROOT_Setup' && item.id !== 'ROOT_Responsibilities' && item.id !== 'ROOT_CsvImporter')" [matMenuTriggerFor]="submenu" (keyup.tab)="submenuTrigger.openMenu()" [attr.data-imx-identifier]="item.id" (keyup.shift.tab)="submenuTrigger.openMenu()" #submenuTrigger="matMenuTrigger" [active]="isActive(item)">
           {{ item.title | translate }}
         </a>
         <mat-menu #submenu="matMenu" yPosition="below" overlapTrigger="false">
           <button mat-menu-item *ngFor="let subitem of item.items" (click)="navigate(subitem)" [attr.data-imx-identifier]="subitem.id" (keyup.enter)="navigate(item)">
-            {{ subitem.title | translate }}
+           {{ subitem.title | translate }}  
           </button>
         </mat-menu>
+        <a mat-tab-link *ngIf="item.id === 'ROOT_CsvImporter'" (click)="GoToCsvImporter()" [attr.data-imx-identifier]="item.id" [active]="isActive(item)">
+          {{ item.title | translate }}
+        </a>
       </ng-container>
     </span>
   </ng-container>

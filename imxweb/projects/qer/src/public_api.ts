@@ -151,3 +151,5 @@ export { IDataExplorerComponent } from './lib/data-explorer-view/data-explorer-e
 export { FeatureConfigService } from './lib/admin/feature-config.service';
 export { ItshopRequest } from './lib/request-history/itshop-request';
 export { RequestParameterDataEntity } from "./lib/itshop/request-info/request-parameter-data-entity.interface";
+export { CsvImporterModule } from './lib/csv-importer/csv-importer.module';
+export { CsvImporterComponent } from './lib/csv-importer/csv-importer.component';

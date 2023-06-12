@@ -55,6 +55,11 @@ export class MenuComponent {
     translator.get('#LDS#the route does not exist').subscribe(value => this.errorMessageNonExistingRoute = value);
   }
 
+  /* Navigate to CSV Importer */
+  public GoToCsvImporter(): void {
+    this.router.navigate(['csvImporter']);
+  }
+
   public isActive(item: MenuItem): boolean {
     if (!item) {
       return false;

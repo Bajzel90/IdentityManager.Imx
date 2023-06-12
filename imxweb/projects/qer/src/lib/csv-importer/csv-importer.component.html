@@ -1,0 +1,22 @@
+<div class="container">
+    <div class="fileUpload">
+        <label for="fileInput" class="uploadBtn">{{ '#LDS# Upload CSV File' | translate }}</label>
+        <input id="fileInput" type="file" accept=".csv" (change)="validateFile($event.target)">
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>{{ '#LDS# Name' | translate }}</th>
+                <th>{{ '#LDS# Size' | translate }}</th>
+                <th>{{ '#LDS# Type' | translate }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let file of csvFiles">
+                <td>{{ file.name }}</td>
+                <td>{{ getFileSize(file.size) }}</td>
+                <td>{{ file.type }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

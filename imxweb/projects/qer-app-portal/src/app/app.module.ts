@@ -68,7 +68,8 @@ import {
   ProfileModule,
   RequestConfigModule,
   RoleManangementModule,
-  ItshopPatternModule
+  ItshopPatternModule,
+  CsvImporterModule
 } from 'qer';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -125,7 +126,8 @@ import { PortalHistoryService } from './portal-history.service';
     RequestConfigModule,
     RequestHistoryModule,
     ServiceCategoriesModule,
-    ServiceItemsEditModule
+    ServiceItemsEditModule,
+    CsvImporterModule
   ],
   providers: [
     { provide: 'environment', useValue: environment },
