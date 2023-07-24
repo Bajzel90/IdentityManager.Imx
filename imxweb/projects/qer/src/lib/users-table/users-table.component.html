@@ -1,18 +1,29 @@
 <table class="csv-table">
-  <thead>
-    <tr *ngIf="columnHeaders.length > 0">
+  <thead *ngIf="columnHeaders.length > 0 && items.length > 0">
+    <tr>
       <th *ngFor="let key of columnHeaders" class="csv-header">{{ key }}</th>
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let item of items">
-      <td class="csv-cell">{{ item.firstname }}</td>
-      <td class="csv-cell">{{ item.lastname }}</td>
-      <td class="csv-cell">{{ item.roles }}</td> 
-      <td class="csv-cell">{{ item.department }}</td>
-    </tr>
-    <tr *ngIf="items.length === 0">
-      <td colspan="{{ columnHeaders.length }}" class="csv-nodata-cell">No Data</td>
-    </tr>
+    <ng-container *ngIf="items.length > 0; else noData">
+      <tr *ngFor="let item of items">
+        <td class="csv-cell">{{ item.firstname }}</td>
+        <td class="csv-cell">{{ item.lastname }}</td>
+        <td class="csv-cell">{{ item.roles }}</td> 
+        <td class="csv-cell">{{ item.department }}</td>
+      </tr>
+    </ng-container>
+    <ng-template #noData class="no-data-template">
+      <tr>
+        <td colspan="{{ columnHeaders.length }}" class="csv-nodata-cell">
+          <div class="csv-nodata-cell-icon">
+            <eui-icon [icon]="'table'" size="100px"></eui-icon>
+          </div>
+          <div class="csv-nodata-cell-description">
+            {{ '#LDS#No Data' | translate }}
+          </div>
+        </td>
+      </tr>
+    </ng-template>
   </tbody>
 </table>
