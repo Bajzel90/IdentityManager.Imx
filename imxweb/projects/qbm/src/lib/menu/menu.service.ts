@@ -34,6 +34,7 @@ import { MenuFactory, MenuItem } from './menu-item/menu-item.interface';
 })
 export class MenuService {
   private factories: MenuFactory[] = [];
+  public submenuIdentifier: string;
 
   public addMenuFactories(...factories: MenuFactory[]): void {
     this.factories.push(...factories);
