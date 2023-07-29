@@ -90,7 +90,8 @@ export class MenuComponent {
 
     if (item.route) {
       const route = this.router.config.find(configItem => configItem.path === item.route);
-      this.menuService.submenuIdentifier = item.id;
+      
+      this.menuService.getSubmenuAttr(item.id);
       
       if (route) {
         this.logger.debug(this, 'navigate to route');

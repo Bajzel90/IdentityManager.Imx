@@ -28,14 +28,20 @@ import { Injectable } from '@angular/core';
 import { ProjectConfig } from 'imx-api-qbm';
 
 import { MenuFactory, MenuItem } from './menu-item/menu-item.interface';
+import { Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MenuService {
   private factories: MenuFactory[] = [];
-  public submenuIdentifier: string;
+  private submenuAttrSource = new Subject<string>();
+  submenuAttr = this.submenuAttrSource.asObservable();
 
+  getSubmenuAttr(value: string) {
+    this.submenuAttrSource.next(value);
+  }
+  
   public addMenuFactories(...factories: MenuFactory[]): void {
     this.factories.push(...factories);
   }

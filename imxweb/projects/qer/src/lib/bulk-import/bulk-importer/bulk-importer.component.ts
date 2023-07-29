@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-
+import { Subscription } from 'rxjs';
 import { MenuService } from 'qbm';
 
 @Component({
@@ -8,11 +8,20 @@ import { MenuService } from 'qbm';
   styleUrls: ['./bulk-importer.component.scss']
 })
 export class BulkImporterComponent implements OnInit {
-
-  constructor(private menuService: MenuService) { }
+  _subscription: Subscription;
+  menuAttr: string;
+  
+  constructor(private menuService: MenuService) {
+    this._subscription = menuService.submenuAttr.subscribe(
+      value => {
+        this.menuAttr = value;
+        console.log(this.menuAttr);
+      }
+    )
+   }
   
   ngOnInit(): void {
-  console.log(this.menuService.submenuIdentifier);
+    
   }
 
 }
