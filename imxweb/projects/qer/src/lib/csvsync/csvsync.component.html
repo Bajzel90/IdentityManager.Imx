@@ -1,0 +1,171 @@
+
+<div class="overlay" *ngIf="loadingValidation || loadingImport"></div>
+
+<div *ngIf="functionObjectsCount > 0 && BulkActionsCofigParamCount > 0">
+  <h1 class="mat-headline">Bulk Actions</h1>
+  <eui-alert *ngIf="!fileLoaded" class="imx-helper-alert" type="info" condensed="true" [colored]="true" [dismissable]="true">
+    <span>Drag & drop or upload a CSV file.</span>
+  </eui-alert>
+
+  <eui-alert *ngIf="fileLoaded && numberOfErrors === 0 && (!allRowsValidated || processing || initializing) && numberOfErrors === 0" class="imx-helper-alert" type="warning" condensed="true" [colored]="true" [dismissable]="true">
+
+    <span>Select a function and Validate your CSV data.</span>
+  </eui-alert>
+
+  <div class="flex-container">
+    <div>
+      <mat-form-field appearance="outline" class="search-width">
+          <mat-label>Search</mat-label>
+          <mat-icon matPrefix>search</mat-icon>
+          <input matInput (keyup)="applyFilter()" [formControl]="searchControl">
+          <button mat-icon-button matSuffix *ngIf="searchControl.value" (click)="searchControl.setValue('')">
+              <mat-icon>close</mat-icon>
+          </button>
+      </mat-form-field>
+    </div>
+    <div>
+      <mat-form-field appearance="outline" class="search-width">
+        <mat-label>Select a Function</mat-label>
+        <mat-select [(ngModel)]="selectedOptionKey">
+          <mat-option *ngFor="let value of getObjectValues(configParams)" [value]="getReversedKey(value)">{{ value }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+    </div>
+  </div>
+
+  <div class="file-input-wrapper">
+    <input style="display: none;" id="csv-file" type="file" (change)="onFileChange($event)" accept=".csv" />
+  </div>
+
+  <div *ngIf="!fileLoaded" class="preview-window" (drop)="onDrop($event)" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)">
+    <div for="file" class="no-results" (click)="triggerFileUpload()">
+      <eui-icon [icon]="noDataIcon"></eui-icon>
+      <p>Drag and drop a CSV file here</p>
+        <p>or click to browse.</p>
+    </div>
+  </div>
+
+  <div *ngIf="fileLoaded" class="scrollable-table">
+    <table mat-table [dataSource]="csvDataSource">
+
+        <!-- Table Columns -->
+        <ng-container *ngFor="let header of headers; let colIndex = index" matColumnDef="{{header}}">
+          <th mat-header-cell *matHeaderCellDef> {{header}} </th>
+          <td mat-cell *matCellDef="let row; let rowIndex = index">
+            {{row[colIndex]}}
+            <span class="validation-result" *ngIf="getValidationResult(rowIndex, colIndex)" [class.error]="isValidationError(rowIndex, colIndex)">
+              {{getValidationResult(rowIndex, colIndex)}}
+            </span>
+          </td>
+        </ng-container>
+        <!-- Header and Rows -->
+        <tr mat-header-row *matHeaderRowDef="headers"></tr>
+        <tr mat-row *matRowDef="let row; columns: headers; let rowIndex = index" [class.not-show]="numberOfErrors > 0 && !isRowError(rowIndex) && ShowErrors && !cancelCheck" [class.error-row]="isRowError(rowIndex)">
+        </tr>
+
+    </table>
+  </div>
+  <mat-paginator #paginator [pageSizeOptions]="[20, 100, 200]" showFirstLastButtons (page)="pageChanged($event)"></mat-paginator>
+  
+  <div class="button-bar">
+
+    <mat-slide-toggle
+      class="toggle-errors"
+      [color]="ShowErrors ? 'warn' : 'warn'"
+      [checked]="ShowErrors"
+
+      [disabled]="processing || initializing || !fileLoaded || loadingValidation || numberOfErrors === 0 || cancelCheck"
+
+      (change)="toggleErrors()">
+      Show Errors
+    </mat-slide-toggle>
+
+    <button
+      mat-raised-button
+      [disabled]="!fileLoaded || loadingValidation || loadingImport"
+      color="warn"
+      (click)="removeCsv()"
+
+    >
+      Remove CSV
+    </button>
+    <button
+      mat-raised-button
+      [disabled]="!fileLoaded || selectedOptionKey === null || loadingValidation || loadingImport"
+      color="accent"
+      (click)="onValidate(selectedOptionKey)"
+    >
+      Validate
+    </button>
+    <button
+      mat-raised-button
+
+      [disabled]="!allRowsValidated || processing || initializing || !fileLoaded || loadingValidation || loadingImport || cancelCheck"
+      color="primary"
+      (click)="onSubmit(selectedOptionKey)"
+
+    >
+      Import to database
+    </button>
+  </div>
+
+  <div *ngIf="!dialogHide" class="loading-container">
+
+    <div *ngIf="preActionMsg.permission">
+      <div *ngIf="loadingValidation || loadingImport || validateDialog" class="loading-wrapper">
+        <div *ngIf="loadingValidation || loadingImport">
+          <h2 *ngIf="loadingValidation">Validating...</h2>
+          <h2 *ngIf="loadingImport">Importing...</h2>
+          <p class="warning">Please do not close the browser</p>
+        </div>
+          
+        <div class="success" *ngIf="fileLoaded && allRowsValidated && !processing && !initializing && !hardError.length && numberOfErrors === 0">
+          <h1>Successfull Validation!</h1>
+          <p>You can procceed with the data import</p>
+        </div>
+        <div class="success" *ngIf="fileLoaded && allImported && !allRowsValidated && !importError">
+          <h1>Successfull Import!</h1>
+          <p>Import procedure completed</p>
+        </div>
+
+        <div class="errors" *ngIf="!processing && !initializing && numberOfErrors > 0 || hardError.length || importError ">
+          <h1>Validation Error!</h1>
+          <p *ngIf="!hardError.length && !importError">You have <span>{{numberOfErrors}}</span> errors in the Csv</p>
+          <p *ngIf="hardError.length && !importError">{{hardError}}</p>
+          <p *ngIf="!hardError.length && importError">{{importErrorMsg}}</p>
+        </div>
+        
+        <p class="validation-details">Estimated remaining time: {{ estimatedRemainingTime }} 
+          <span *ngIf="processing">{{processedRows}} of {{totalRows}}</span>
+          <span *ngIf="!processing && !hardError.length && !importError && numberOfErrors === 0">{{totalRows}} of {{totalRows}}</span>
+        </p>
+        <mat-progress-bar mode="determinate" [value]="processing ? progress : hardError.length || importError ? '33' : '100' "></mat-progress-bar>
+        <p *ngIf="!importError" class="validation-details">{{preActionMsg.message}}</p>
+
+        <div mat-dialog-actions class="button-wrapper">
+          <div *ngIf="numberOfErrors === 0 && !hardError.length && !importError">
+            <button [disabled]="!processing" mat-button color="warn" (click)="dialogClose()">Cancel</button>
+            <button [disabled]="processing" mat-button color="primary" (click)="dialogClose()">Ok</button>
+          </div>
+          <button *ngIf="numberOfErrors > 0 || hardError.length || importError" mat-button color="warn" (click)="dialogClose()">Cancel</button>
+        </div>   
+      </div>
+    </div>
+
+    <div *ngIf="!preActionMsg.permission">
+      <div class="loading-wrapper">
+        <h1 class="warning">Action not allowed</h1>
+        <p>{{preActionMsg.message}}<p>
+
+        <div mat-dialog-actions class="button-wrapper">
+          <button type="button" mat-button color="warn" (click)="dialogClose()">Cancel</button>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+

@@ -26,7 +26,7 @@
 
 import { Injectable } from '@angular/core';
 import { ProjectConfig } from 'imx-api-qbm';
-
+import { ReplaySubject } from 'rxjs';
 import { MenuFactory, MenuItem } from './menu-item/menu-item.interface';
 
 @Injectable({
@@ -34,7 +34,12 @@ import { MenuFactory, MenuItem } from './menu-item/menu-item.interface';
 })
 export class MenuService {
   private factories: MenuFactory[] = [];
+  private _submenuAttr = new ReplaySubject<string>(1);
+    public submenuAttr = this._submenuAttr.asObservable();
 
+    setSubmenuAttr(value: string) {
+        this._submenuAttr.next(value);
+    }
   public addMenuFactories(...factories: MenuFactory[]): void {
     this.factories.push(...factories);
   }

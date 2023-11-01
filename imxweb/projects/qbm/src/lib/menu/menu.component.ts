@@ -24,12 +24,15 @@
  *
  */
 
-import { Component, ErrorHandler, Input } from '@angular/core';
+import { Component, ElementRef, ErrorHandler, Input } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-
+import { MethodDescriptor, TimeZoneInfo } from 'imx-qbm-dbts';
 import { MenuItem } from './menu-item/menu-item.interface';
 import { ClassloggerService } from '../classlogger/classlogger.service';
+import { MenuService } from './menu.service';
+import { AuthenticationService } from '../authentication/authentication.service';
+import { AppConfigService } from '../appConfig/appConfig.service';
 
 /**
  * Displays a menu and provides logic for navigation
@@ -46,13 +49,22 @@ export class MenuComponent {
   @Input() public menuItems: MenuItem[];
 
   private errorMessageNonExistingRoute = '';
+  CsvImporter: any;
 
   constructor(
     private readonly router: Router,
     private readonly logger: ClassloggerService,
     private readonly errorHandler: ErrorHandler,
+    private menuService: MenuService,
+    private readonly config: AppConfigService,
+    private readonly authentication: AuthenticationService,
     translator: TranslateService) {
     translator.get('#LDS#the route does not exist').subscribe(value => this.errorMessageNonExistingRoute = value);
+  }
+
+  public async ngOnInit(): Promise<void> {
+    this.authentication.update();
+
   }
 
   public isActive(item: MenuItem): boolean {
@@ -86,7 +98,9 @@ export class MenuComponent {
 
     if (item.route) {
       const route = this.router.config.find(configItem => configItem.path === item.route);
-
+      if (item.id) {
+        this.menuService.setSubmenuAttr(item.id);
+      }
       if (route) {
         this.logger.debug(this, 'navigate to route');
         this.router.navigate([`/${item.route}`]);
@@ -102,5 +116,26 @@ export class MenuComponent {
       this.router.navigate(item.navigationCommands.commands);
       this.logger.trace(this, item.navigationCommands);
     }
+  }
+
+  public async getAERoleforCsvImporter(): Promise<boolean> {
+    const CsvImporter = await this.config.apiClient.processRequest(this.getWhoForCSV());
+    console.log(CsvImporter);
+    return CsvImporter;
+   }
+
+   private getWhoForCSV(): MethodDescriptor<boolean> {
+    const parameters = [];
+    return {
+      path: `/portal/forcsv`,
+      parameters,
+      method: 'GET',
+      headers: {
+        'imx-timezone': TimeZoneInfo.get(),
+      },
+      credentials: 'include',
+      observe: 'response',
+      responseType: 'json',
+    };
   }
 }

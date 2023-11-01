@@ -1,0 +1,8 @@
+<h1 mat-dialog-title>Confirm Action</h1>
+<div mat-dialog-content *ngIf="data.selectedOptionKey">
+  <p>Are you sure you want to insert {{ data.totalRows }} {{ data.selectedOptionValue }}?</p>
+</div>
+<div mat-dialog-actions>
+  <button mat-button color="warn" (click)="onNoClick()">Cancel</button>
+  <button mat-button color="primary" [mat-dialog-close]="true" [mat-dialog-close]="{ selectedOptionKey: data.selectedOptionKey }">Confirm</button>
+</div>

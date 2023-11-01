@@ -1,6 +1,7 @@
 <nav mat-tab-nav-bar>
   <ng-container *ngIf="menuItems">
     <span *ngFor="let item of menuItems">
+      <ng-container *ngIf="item.id !== 'ROOT_BULK'">
       <button mat-button class="imx-mein-menu-item" *ngIf="!item.items" (click)="navigate(item)" [attr.data-imx-identifier]="item.id" (keyup.enter)="navigate(item)" [active]="isActive(item)">
         {{ item.title | translate }}
       </button>
@@ -13,6 +14,7 @@
             {{ subitem.title | translate }}
           </button>
         </mat-menu>
+      </ng-container>
       </ng-container>
     </span>
   </ng-container>
