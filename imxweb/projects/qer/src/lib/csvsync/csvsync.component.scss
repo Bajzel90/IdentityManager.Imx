@@ -20,6 +20,8 @@
   border-radius: 2px;
 }
 
+.line-break { white-space: pre-line;}
+
 h1.mat-headline {
   margin-bottom: 15px;
 }
@@ -113,6 +115,8 @@ td.mat-cell {
   }
 }
 
+.center { text-align: center!important;}
+
 .validation-result {
   display: block;
 }
@@ -192,7 +196,10 @@ td.mat-cell {
 
     p {
       font-size: 18px;
-      &.warning {font-weight: 600;}
+      text-align: left;
+      &.warning {
+        font-weight: 600;
+      }
       &.validation-details {
         margin-bottom: 0;
         font-size: 14px;
