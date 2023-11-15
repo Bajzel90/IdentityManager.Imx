@@ -52,7 +52,6 @@ export class StartComponent implements OnInit {
   public userUid: string;
   dataSource: string[] = [];
   functionObjectsCount: number = 0;
-  public BulkActionsCofigParamCount: number;
 
   constructor(
     public readonly router: Router,
@@ -77,11 +76,8 @@ export class StartComponent implements OnInit {
       this.userUid = (await this.sessionService.getSessionState()).UserUid;
       this.viewReady = true;
       this.authentication.update();
-      this.BulkActionsCofigParamCount = await this.countPropertiesInConfigurationParameters();
-      await this.getAERoleforCsvImporter(); // Wait for data to be fetched
-
-      this.functionObjectsCount = this.countObjectsWithFunctionKey(this.dataSource);
-      console.log("Number of objects with 'Function' property:", this.functionObjectsCount);
+      await this.BulkActionsPermissions(); // Wait for data to be fetched
+      this.calculateKeyCounts();
     } finally {
       setTimeout(() => this.busyService.hide(overlayRef));
     }
@@ -179,36 +175,26 @@ export class StartComponent implements OnInit {
     this.router.navigate(['/csvsync-component']);
   }
 
-  private countObjectsWithFunctionKey(data: any): number {
-    if (!data || (Array.isArray(data) && data.length === 0)) {
-      return 0; // Return 0 if data is undefined, null, or an empty array
-    }
-
-    if (Array.isArray(data)) {
-      // If data is an array, count objects with "Function" or "function" keys
-      return data.reduce((count, item) => {
-        return count + (item.hasOwnProperty("Function") || item.hasOwnProperty("function") ? 1 : 0);
+  calculateKeyCounts(): void {
+    if (this.dataSource && this.dataSource.length > 0) {
+      // Count keys in each object
+      this.functionObjectsCount = this.dataSource.reduce((count, item) => {
+        count += Object.keys(item).length;
+        return count;
       }, 0);
-    } else if (typeof data === 'object') {
-      // If data is an object, check if it has "Function" or "function" keys
-      return (data.hasOwnProperty("Function") || data.hasOwnProperty("function")) ? 1 : 0;
     }
-
-    return 0; // Return 0 for other data types
   }
 
-
-
-  public async getAERoleforCsvImporter(): Promise<void> {
-    const CsvImporter = await this.config.apiClient.processRequest<string[]>(this.getWhoForCSV());
+  public async BulkActionsPermissions(): Promise<void> {
+    const CsvImporter = await this.config.apiClient.processRequest<string[]>(this.GetBulkActionsPermissions());
     console.log(CsvImporter);
     this.dataSource = CsvImporter;
    }
 
-   private getWhoForCSV(): MethodDescriptor<void> {
+   private GetBulkActionsPermissions(): MethodDescriptor<void> {
     const parameters = [];
     return {
-      path: `/portal/BulkActionsFunctionsForUser`,
+      path: `/portal/bulkactions/permissions`,
       parameters,
       method: 'GET',
       headers: {

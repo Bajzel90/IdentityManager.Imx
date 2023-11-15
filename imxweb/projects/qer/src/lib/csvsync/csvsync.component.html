@@ -1,7 +1,7 @@
 
 <div class="overlay" *ngIf="loadingValidation || loadingImport"></div>
 
-<div *ngIf="functionObjectsCount > 0 && BulkActionsCofigParamCount > 0">
+<div *ngIf="functionObjectsCount > 0">
   <h1 class="mat-headline">Bulk Actions</h1>
   <eui-alert *ngIf="!fileLoaded" class="imx-helper-alert" type="info" condensed="true" [colored]="true" [dismissable]="true">
     <span>Drag & drop or upload a CSV file.</span>
@@ -27,7 +27,9 @@
       <mat-form-field appearance="outline" class="search-width">
         <mat-label>Select a Function</mat-label>
         <mat-select [(ngModel)]="selectedOptionKey">
-          <mat-option *ngFor="let value of getObjectValues(configParams)" [value]="getReversedKey(value)">{{ value }}</mat-option>
+          <mat-option *ngFor="let value of getObjectValues2()" [value]="getReversedKey(value)">
+            {{ value }}
+          </mat-option>
         </mat-select>
       </mat-form-field>
 
@@ -67,7 +69,7 @@
     </table>
   </div>
   <mat-paginator #paginator [pageSizeOptions]="[20, 100, 200]" showFirstLastButtons (page)="pageChanged($event)"></mat-paginator>
-  
+
   <div class="button-bar">
 
     <mat-slide-toggle
@@ -119,7 +121,7 @@
           <h2 *ngIf="loadingImport">Importing...</h2>
           <p class="warning center">Please do not close the browser</p>
         </div>
-          
+
         <div class="success" *ngIf="fileLoaded && allRowsValidated && !processing && !initializing && !hardError.length && numberOfErrors === 0">
           <h1>Successfull Validation!</h1>
           <p class="center">You can procceed with the data import</p>
@@ -135,8 +137,8 @@
           <p *ngIf="hardError.length && !importError" class="line-break">{{hardError}}</p>
           <p *ngIf="!hardError.length && importError">{{importErrorMsg}}</p>
         </div>
-        
-        <p class="validation-details">Estimated remaining time: {{ estimatedRemainingTime }} 
+
+        <p class="validation-details">Estimated remaining time: {{ estimatedRemainingTime }}
           <span *ngIf="processing">{{processedRows}} of {{totalRows}}</span>
           <span *ngIf="!processing && !hardError.length && !importError && numberOfErrors === 0">{{totalRows}} of {{totalRows}}</span>
         </p>
@@ -149,7 +151,7 @@
             <button [disabled]="processing" mat-button color="primary" (click)="dialogClose()">Ok</button>
           </div>
           <button *ngIf="numberOfErrors > 0 || hardError.length || importError" mat-button color="warn" (click)="dialogClose()">Cancel</button>
-        </div>   
+        </div>
       </div>
     </div>
 
