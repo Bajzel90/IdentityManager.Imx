@@ -101,7 +101,7 @@
     <button
       mat-raised-button
 
-      [disabled]="!allRowsValidated || processing || initializing || !fileLoaded || loadingValidation || loadingImport || cancelCheck"
+      [disabled]="!allRowsValidated || processing || initializing || !fileLoaded || loadingValidation || loadingImport || cancelCheck || hardError.length"
       color="primary"
       (click)="onSubmit(selectedOptionKey)"
 
