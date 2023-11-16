@@ -73,8 +73,8 @@ export class CsvsyncComponent implements OnInit, AfterViewInit {
   loadingImport = false;
   showProgressBar = false;
   processedRows = 0;
-  configParams: { [key: string]: string } = {};
-  selectedOptionKey: string;
+  MaxRows: string = '';
+  selectedOptionKey: string = '';
   dataSource: string[] = [];
   CsvImporter: any;
   functionObjectsCount: number = 0;
@@ -96,13 +96,7 @@ export class CsvsyncComponent implements OnInit, AfterViewInit {
     private qerService: QerService,
     private cdr: ChangeDetectorRef,
     private papa: Papa) {
-      this.ConfigurationParameters().then((configParams) => {
-        if (configParams) {
-          this.configParams = this.convertObjectValuesToStrings(configParams);
-        } else {
-          console.error('ConfigurationParameters() returned an undefined or null object.');
-        }
-      });
+
 
     }
 
@@ -116,13 +110,8 @@ export class CsvsyncComponent implements OnInit, AfterViewInit {
     this.processing = true;
 
     this.allvalidated = false;
-    await this.ConfigurationParameters();
-    await this.getAERoleforCsvImporter(); // Wait for data to be fetched
-    await this.filterConfigParams();
-    console.log(this.configParams);
-    this.BulkActionsCofigParamCount = await this.countPropertiesInConfigurationParameters();
-    this.functionObjectsCount = this.countObjectsWithFunctionKey(this.dataSource);
-    console.log("Number of objects with 'Function' property:", this.functionObjectsCount);
+    await this.BulkActionsPermissions();
+    this.calculateKeyCounts();
 
     this.authentication.update();
     this.cdr.detectChanges();
@@ -215,26 +204,6 @@ export class CsvsyncComponent implements OnInit, AfterViewInit {
   }
 
 
-  filterConfigParams() {
-    // Create a set to store the values from the dataSource array
-    const dataSourceValues = new Set<string>();
-
-    // Iterate through each item in the dataSource array
-    this.dataSource.forEach(item => {
-      // Get the value from the object in the array and add it to the set
-      const value = Object.values(item)[0];
-      dataSourceValues.add(value);
-    });
-
-    // Iterate through the keys in the configParams object
-    for (const key in this.configParams) {
-      if (!dataSourceValues.has(key)) {
-        // If the key doesn't exist in the dataSource array, remove it from configParams
-        delete this.configParams[key];
-      }
-    }
-  }
-
   checkAllRowsValidated(): boolean {
     // All rows are validated if there are no errors
     return this.numberOfErrors === 0;
@@ -277,25 +246,6 @@ export class CsvsyncComponent implements OnInit, AfterViewInit {
       this.csvDataSource.paginator.firstPage();
     }
     this.cdr.detectChanges();
-  }
-
-  getObjectValues(obj: any): string[] {
-    return Object.values(obj);
-  }
-
-  getReversedKey(value: string): string {
-    return this.getReversedConfigParams()[value];
-  }
-
-  getReversedConfigParams(): { [key: string]: string } {
-    // Reverse the key-value pairs of the configParams object
-    const reversedObject: { [key: string]: string } = {};
-    for (const key in this.configParams) {
-      if (this.configParams.hasOwnProperty(key)) {
-        reversedObject[this.configParams[key]] = key;
-      }
-    }
-    return reversedObject;
   }
 
   toggleErrors() {
@@ -363,9 +313,9 @@ export class CsvsyncComponent implements OnInit, AfterViewInit {
       const data = event.target.result as string;
 
       this.papa.parse(data, {
-        header: true, 
-        skipEmptyLines: true, 
-        encoding: 'UTF-8', 
+        header: true,
+        skipEmptyLines: true,
+        encoding: 'UTF-8',
         complete: (result) => {
           // 'result.data' contains the parsed CSV data
           if (result.data.length > 0) {
@@ -519,32 +469,6 @@ private PostObject(endpoint: string, inputParameterName: any): MethodDescriptor<
     credentials: 'include',
     observe: 'response',
     responseType: 'json'
-  };
-}
-
-public async countPropertiesInConfigurationParameters(): Promise<number> {
-  const configurationParameters = await this.ConfigurationParameters();
-  return Object.keys(configurationParameters).length;
-}
-
-public async ConfigurationParameters(): Promise<object> {
-  const ConfigurationParameters = await this.config.apiClient.processRequest(this.getConfigCsv());
-  console.log(ConfigurationParameters);
-  return ConfigurationParameters;
- }
-
- private getConfigCsv(): MethodDescriptor<object> {
-  const parameters = [];
-  return {
-    path: `/portal/ConfigCsv`,
-    parameters,
-    method: 'GET',
-    headers: {
-      'imx-timezone': TimeZoneInfo.get(),
-    },
-    credentials: 'include',
-    observe: 'response',
-    responseType: 'json',
   };
 }
 
@@ -899,49 +823,7 @@ private endImportMethod(endpoint: string, startobject: any): MethodDescriptor<Pr
   };
 }
 
-private countObjectsWithFunctionKey(data: any): number {
-  if (!data || (Array.isArray(data) && data.length === 0)) {
-    return 0; // Return 0 if data is undefined, null, or an empty array
-  }
-
-  if (Array.isArray(data)) {
-    // If data is an array, count objects with "Function" or "function" keys
-    return data.reduce((count, item) => {
-      return count + (item.hasOwnProperty("Function") || item.hasOwnProperty("function") ? 1 : 0);
-    }, 0);
-  } else if (typeof data === 'object') {
-    // If data is an object, check if it has "Function" or "function" keys
-    return (data.hasOwnProperty("Function") || data.hasOwnProperty("function")) ? 1 : 0;
-  }
-
-  return 0; // Return 0 for other data types
-}
-
-
-
-public async getAERoleforCsvImporter(): Promise<void> {
-  const CsvImporter = await this.config.apiClient.processRequest<string[]>(this.getWhoForCSV());
-  console.log(CsvImporter);
-  this.dataSource = CsvImporter;
- }
-
- private getWhoForCSV(): MethodDescriptor<void> {
-  const parameters = [];
-  return {
-    path: `/portal/BulkActionsFunctionsForUser`,
-    parameters,
-    method: 'GET',
-    headers: {
-      'imx-timezone': TimeZoneInfo.get(),
-    },
-    credentials: 'include',
-    observe: 'response',
-    responseType: 'json',
-  };
-}
-
-
-openConfirmationDialog(): void {
+/*openConfirmationDialog(): void {
   const selectedOptionValue = this.getObjectValues(this.configParams).find(
     (value) => this.getReversedKey(value) === this.selectedOptionKey
   );
@@ -961,8 +843,61 @@ openConfirmationDialog(): void {
       this.importToDatabase(result.selectedOptionKey);
     }
   });
+}*/
+
+getObjectValues2(): string[] {
+  return this.dataSource.flatMap(item => {
+    const key = Object.keys(item)[0];
+    return item[key].filter((subItem: any) => subItem.DisplayName).map((subItem: any) => subItem.DisplayName);
+  });
+}
+
+getReversedKey(displayName: string): string {
+  let keyFound = '';
+
+  for (const item of this.dataSource) {
+    const key = Object.keys(item)[0];
+    const found = item[key].find((val: any) => val.DisplayName === displayName);
+
+    if (found) {
+      keyFound = key;
+      break;
+    }
+  }
+
+  return keyFound;
+}
+
+calculateKeyCounts(): void {
+  if (this.dataSource && this.dataSource.length > 0) {
+
+    this.functionObjectsCount = this.dataSource.reduce((count, item) => {
+      count += Object.keys(item).length;
+      return count;
+    }, 0);
+  }
+}
+
+public async BulkActionsPermissions(): Promise<void> {
+  const CsvImporter = await this.config.apiClient.processRequest<string[]>(this.GetBulkActionsPermissions());
+  console.log(CsvImporter);
+  this.dataSource = CsvImporter;
+ }
+
+ private GetBulkActionsPermissions(): MethodDescriptor<void> {
+  const parameters = [];
+  return {
+    path: `/portal/bulkactions/permissions`,
+    parameters,
+    method: 'GET',
+    headers: {
+      'imx-timezone': TimeZoneInfo.get(),
+    },
+    credentials: 'include',
+    observe: 'response',
+    responseType: 'json',
+  };
+
 }
 
 }
-
-
