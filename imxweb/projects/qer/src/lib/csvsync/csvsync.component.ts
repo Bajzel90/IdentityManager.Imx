@@ -161,8 +161,9 @@ export class CsvsyncComponent implements OnInit, AfterViewInit {
     }
     this.importError = false;
     this.importErrorMsg = '';
-    this.hardError = '';
+    //this.hardError = '';
     this.dialogHide = true;
+    console.log(this.hardError.length)
   }
 
   removeCsv() {
@@ -172,6 +173,7 @@ export class CsvsyncComponent implements OnInit, AfterViewInit {
     this.importError = false;
     this.hardError = '';
     this.importErrorMsg = '';
+    this.csvDataSource.paginator._changePageSize(20);
 
     this.totalRows = 0;
     this.processedRows = 0;
