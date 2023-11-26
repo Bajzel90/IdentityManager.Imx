@@ -38,7 +38,7 @@ export interface PreActionElement{
 })
 export class CsvsyncComponent implements OnInit, AfterViewInit {
 
-
+  dbExceptions: string[] = [];
   startValidateObj: object;
   startImportObj: object;
   endImportObj: object;
@@ -73,7 +73,6 @@ export class CsvsyncComponent implements OnInit, AfterViewInit {
   loadingImport = false;
   showProgressBar = false;
   processedRows = 0;
-  MaxRows: string = '';
   selectedOptionKey: string = '';
   dataSource: string[] = [];
   CsvImporter: any;
@@ -128,7 +127,7 @@ export class CsvsyncComponent implements OnInit, AfterViewInit {
     this.processedRows = 0;
     this.selectedOptionKey = null;
     this.allRowsValidated = false;
-
+    this.dbExceptions = [];
     this.allImported = false;
 
     this.validationResults$.next([]);
@@ -174,7 +173,7 @@ export class CsvsyncComponent implements OnInit, AfterViewInit {
     this.hardError = '';
     this.importErrorMsg = '';
     this.csvDataSource.paginator._changePageSize(20);
-
+    this.dbExceptions = [];
     this.totalRows = 0;
     this.processedRows = 0;
     this.fileLoaded = false;
@@ -364,6 +363,59 @@ getValidationResult(rowIndex: number, colIndex: number): string | undefined {
 
   }
 
+  public async validateRowBeforeImport(endpoint: string, csvRow: any): Promise<boolean> {
+    const rowToValidate: any = {
+      headerNames: this.headers.slice(1),
+      index: (csvRow[0]).toString(),
+      columns: []
+    };
+
+    // Prepare the columns for validation
+    for (let colIndex = 1; colIndex < csvRow.length; colIndex++) {
+      const header = this.headers[colIndex];
+      const value = csvRow[colIndex];
+
+      rowToValidate.columns.push({
+        column: header,
+        value: value ? value.trim() : '' // Trim whitespace if it's a string
+      });
+
+    }
+
+    try {
+      let validationResponse: any = await this.config.apiClient.processRequest(this.validateRow(endpoint, rowToValidate));
+      console.log(rowToValidate);
+      console.log(validationResponse);
+      for (const responseItem of validationResponse) {
+        const column = responseItem.column;
+        const value = responseItem.value;
+
+        if (column === "HardError") {
+
+          this.hardError = value;
+
+        } else {
+
+          for (let colIndex = 1; colIndex < this.headers.length; colIndex++) {
+            const header = this.headers[colIndex];
+            if (column === header && value !== "ok") {
+              this.validationResults.push({ rowIndex: csvRow[0]-1, colIndex, message: value });
+              this.allvalidated = false;
+              this.numberOfErrors++;
+            }
+          }
+        }
+      }
+      console.log(this.validationResults);
+
+      return this.numberOfErrors === 0;
+    } catch (error) {
+      console.error(`Error validating CSV row: ${error}`);
+
+      return false;
+    }
+  }
+
   public async importToDatabase(endpoint: string): Promise<PeriodicElement[]> {
     this.loadingImport = true;
     const inputParameters: any[] = [];
@@ -400,41 +452,55 @@ getValidationResult(rowIndex: number, colIndex: number): string | undefined {
 
       const startTime = performance.now();
       console.log(inputParameter);
-      try {
-        const data = await this.config.apiClient.processRequest(this.PostObject(endpoint, inputParameter));
+      const csvRow = inputParameter.columns.map(col => col.value);
+      console.log(csvRow[0]);
+      const isValidRow = await this.validateRowBeforeImport(endpoint, csvRow);
+      if (isValidRow) {
+          try {
+            const data = await this.config.apiClient.processRequest(this.PostObject(endpoint, inputParameter));
 
-        console.log('>>>>>>>>>>>>>>>>>>>'+ data.permission)
+            console.log('>>>>>>>>>>>>>>>>>>>'+ data.permission)
 
-        if (this.cancelAction) {
-          break;
-        }
-        if (!data.permission) {
-          this.importError = true;
-          this.importErrorMsg = data.message;
-          break;
-        }
+            if (this.cancelAction) {
+              break;
+            }
+            if (!data.permission) {
+              this.importError = true;
+              this.importErrorMsg = data.message;
+              break;
+            }
 
-        results.push(data);
-      } catch (error) {
-        console.error(`Error submitting CSV data: ${error}`);
-      } finally {
+            results.push(data);
+          } catch (error) {
+
+            console.error(`Error submitting row ${csvRow[0]}: ${error}`);
+            this.validationResults.push({ rowIndex: csvRow[0]-1, colIndex: -1, message: "" });
+            this.allvalidated = false;
+            this.dbExceptions.push(`Error submitting row ${csvRow[0]}: ${error}`);
+
+          } finally {
 
 
 
-        const endTime = performance.now();
-        const timeTaken = endTime - startTime;
-        totalTimeTaken += timeTaken;
+            const endTime = performance.now();
+            const timeTaken = endTime - startTime;
+            totalTimeTaken += timeTaken;
 
-        // Calculate the average time taken per row
-        const averageTimePerRow = totalTimeTaken / (this.processedRows + 1);
+            // Calculate the average time taken per row
+            const averageTimePerRow = totalTimeTaken / (this.processedRows + 1);
 
-        estimatedRemainingSecs = (averageTimePerRow * (this.totalRows - this.processedRows - 1)) / 1000; // Convert to seconds
-        // Calculate the progress and update the progress bar
-        this.progress = (this.processedRows / this.totalRows) * 100;
-        this.estimatedRemainingTime = this.formatTime(estimatedRemainingSecs);
-        this.processedRows++;
+            estimatedRemainingSecs = (averageTimePerRow * (this.totalRows - this.processedRows - 1)) / 1000; // Convert to seconds
+            // Calculate the progress and update the progress bar
+            this.progress = (this.processedRows / this.totalRows) * 100;
+            this.estimatedRemainingTime = this.formatTime(estimatedRemainingSecs);
+            this.processedRows++;
+          }
+      } else {
+        // Handle invalid rows (if needed)
+        console.log('Invalid row detected:', csvRow);
       }
     }
+
 
     this.allRowsValidated = false;
 
@@ -661,7 +727,7 @@ public async validate(endpoint: string): Promise<void> {
           }
         }
       }
-      console.log(validationResponse);
+
     } catch (error) {
       console.error(`Error handling the API response: ${error}`);
       this.allvalidated = false;
@@ -687,6 +753,7 @@ public async validate(endpoint: string): Promise<void> {
   this.processing = false;
 
   console.log(this.allvalidated);
+  console.log(this.validationResults);
   this.csvDataSource.paginator._changePageSize(this.totalRows);
   this.cdr.detectChanges();
   setTimeout(() => {

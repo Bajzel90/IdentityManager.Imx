@@ -3,13 +3,16 @@
 
 <div *ngIf="functionObjectsCount > 0">
   <h1 class="mat-headline">Bulk Actions</h1>
-  <eui-alert *ngIf="!fileLoaded" class="imx-helper-alert" type="info" condensed="true" [colored]="true" [dismissable]="true">
+  <eui-alert *ngIf="!fileLoaded && dbExceptions.length === 0" class="imx-helper-alert" type="info" condensed="true" [colored]="true" [dismissable]="true">
     <span>Drag & drop or upload a CSV file.</span>
   </eui-alert>
 
-  <eui-alert *ngIf="fileLoaded && numberOfErrors === 0 && (!allRowsValidated || processing || initializing) && numberOfErrors === 0" class="imx-helper-alert" type="warning" condensed="true" [colored]="true" [dismissable]="true">
+  <eui-alert *ngIf="fileLoaded && numberOfErrors === 0 && (!allRowsValidated || processing || initializing) && dbExceptions.length === 0" class="imx-helper-alert" type="warning" condensed="true" [colored]="true" [dismissable]="true">
 
     <span>Select a function and Validate your CSV data.</span>
+  </eui-alert>
+  <eui-alert *ngIf="dbExceptions.length > 0" class="imx-helper-alert" type="error" condensed="true" [colored]="true" [dismissable]="true">
+    <span *ngFor="let exception of dbExceptions">{{ exception }}</span>
   </eui-alert>
 
   <div class="flex-container">
@@ -108,7 +111,7 @@
       (click)="onSubmit(selectedOptionKey)"
 
     >
-      Import to database
+      Import Data
     </button>
   </div>
 
