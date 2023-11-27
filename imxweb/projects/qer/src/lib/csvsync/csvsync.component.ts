@@ -364,6 +364,7 @@ getValidationResult(rowIndex: number, colIndex: number): string | undefined {
   }
 
   public async validateRowBeforeImport(endpoint: string, csvRow: any): Promise<boolean> {
+    let isValid: boolean = true;
     const rowToValidate: any = {
       headerNames: this.headers.slice(1),
       index: (csvRow[0]).toString(),
@@ -402,17 +403,19 @@ getValidationResult(rowIndex: number, colIndex: number): string | undefined {
               this.validationResults.push({ rowIndex: csvRow[0]-1, colIndex, message: value });
               this.allvalidated = false;
               this.numberOfErrors++;
+              isValid = false;
+
             }
           }
         }
       }
       console.log(this.validationResults);
 
-      return this.numberOfErrors === 0;
+      return isValid;
     } catch (error) {
       console.error(`Error validating CSV row: ${error}`);
 
-      return false;
+      return isValid;
     }
   }
 
@@ -454,6 +457,7 @@ getValidationResult(rowIndex: number, colIndex: number): string | undefined {
       console.log(inputParameter);
       const csvRow = inputParameter.columns.map(col => col.value);
       console.log(csvRow[0]);
+
       const isValidRow = await this.validateRowBeforeImport(endpoint, csvRow);
       if (isValidRow) {
           try {
