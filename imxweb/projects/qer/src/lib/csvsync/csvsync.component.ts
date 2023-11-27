@@ -157,12 +157,13 @@ export class CsvsyncComponent implements OnInit, AfterViewInit {
 
     }else{
       this.cancelCheck = false;
-
+      
     }
     this.importError = false;
     this.importErrorMsg = '';
-    this.hardError = '';
+    //this.hardError = '';
     this.dialogHide = true;
+    console.log(this.hardError.length)
   }
 
   removeCsv() {
