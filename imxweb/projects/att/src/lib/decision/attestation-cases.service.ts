@@ -138,7 +138,7 @@ export class AttestationCasesService {
           (treefilterparameter) => this.getFilterTree(treefilterparameter)
         );
 
-        return new AttestationCase(item, this.isChiefApproval, parameterDataContainer, { ...collection.extendedData, ...{ index } });
+        return new AttestationCase(item, parameterDataContainer, { ...collection.extendedData, ...{ index } });
       }),
     };
   }

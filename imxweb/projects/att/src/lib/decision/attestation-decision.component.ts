@@ -350,30 +350,25 @@ export class AttestationDecisionComponent implements OnInit, OnDestroy {
   public async onGroupingChange(groupInfo: { key: string; isInitial: boolean }): Promise<void> {
     const isBusy = this.busyService.beginBusy();
     try {
-  
-        const groupedData = this.groupedData[groupKey];
-        const navigationState = { ...groupedData.navigationState, Escalation: this.viewEscalation };
- 
-        if (!navigationState.filter) {
-          return;
-        }
+      const groupedData = this.groupedData[groupInfo.key];
+      const navigationState = { ...groupedData.navigationState, Escalation: this.viewEscalation };
+      groupedData.data = groupInfo.isInitial
+        ? { totalCount: 0, Data: [] }
+        : await this.attestationCases.get(navigationState);
 
-        groupedData.data = await this.attestationCases.get(navigationState,this.isUserEscalationApprover);
-        if (groupKey.includes('risk')) {
+        if (groupInfo.key.includes('risk')) {
           groupedData.data = await this.attestationCases.get2(navigationState,this.isUserEscalationApprover);
-        }
-        
-        groupedData.settings = {
-          displayedColumns: this.dstSettings.displayedColumns,
-          dataModel: this.dstSettings.dataModel,
-          dataSource: groupedData.data,
-          entitySchema: this.dstSettings.entitySchema,
-          navigationState,
-        };
-      
-      
+        }  
+      groupedData.settings = {
+        displayedColumns: this.dstSettings.displayedColumns,
+        dataModel: this.dstSettings.dataModel,
+        dataSource: groupedData.data,
+        entitySchema: this.dstSettings.entitySchema,
+        navigationState,
+      };
     } finally {
       isBusy.endBusy();
+      
     }
   }
 
