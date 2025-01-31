@@ -1,7 +1,9 @@
 <li data-imx-identifier="decision-step-is-calculating" class="imx-event imx-pending"
-  *ngIf="approvers.current.length === 0">
+  *ngIf="approvers.current.length === 0 && approvers.canSeeSteps">
   <mat-card>
-    {{'#LDS#The next approval step is currently being calculated.' | translate}}
+    {{
+        '#LDS#The next approval step is currently being calculated.' | translate
+    }}
   </mat-card>
 </li>
 <li data-imx-identifier="decision-step-current-approvers" class="imx-event imx-pending"

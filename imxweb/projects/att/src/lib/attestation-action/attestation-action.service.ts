@@ -24,29 +24,39 @@
  *
  */
 
-import { Injectable, Type } from '@angular/core';
 import { OverlayRef } from '@angular/cdk/overlay';
+import { Injectable, Type } from '@angular/core';
 import { EuiLoadingService, EuiSidesheetService } from '@elemental-ui/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Subject } from 'rxjs';
 
 import { PortalAttestationApprove } from 'imx-api-att';
-import { CompareOperator, EntityData, FilterType, ValType } from 'imx-qbm-dbts';
-import { SnackBarService, EntityService, ColumnDependentReference, BaseCdr, ExtService, BaseReadonlyCdr, CdrFactoryService } from 'qbm';
+import { CompareOperator, EntityData, FilterType, TypedEntity, ValType } from 'imx-qbm-dbts';
+import {
+  AuthenticationService,
+  BaseCdr,
+  BaseReadonlyCdr,
+  CdrFactoryService,
+  ColumnDependentReference,
+  EntityService,
+  ExtService,
+  SnackBarService,
+} from 'qbm';
 import { JustificationService, JustificationType, PersonService, UserModelService } from 'qer';
-import { AttestationCasesService } from '../decision/attestation-cases.service';
-import { AttestationActionComponent } from './attestation-action.component';
-import { AttestationCase } from '../decision/attestation-case';
-import { AttestationWorkflowService } from './attestation-workflow.service';
-import { AttestationCaseAction } from './attestation-case-action.interface';
 import { ApiService } from '../api.service';
+import { AttestationCase } from '../decision/attestation-case';
+import { AttestationCasesService } from '../decision/attestation-cases.service';
 import { AttestationInquiry } from '../decision/attestation-inquiries/attestation-inquiry.model';
+import { AttestationActionComponent } from './attestation-action.component';
+import { AttestationCaseAction } from './attestation-case-action.interface';
+import { AttestationWorkflowService } from './attestation-workflow.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AttestationActionService {
   public readonly applied = new Subject();
+  private uidUser: string;
 
   constructor(
     private readonly apiService: ApiService,
@@ -58,10 +68,13 @@ export class AttestationActionService {
     private readonly snackBar: SnackBarService,
     private readonly entityService: EntityService,
     private readonly person: PersonService,
-    private readonly workflow: AttestationWorkflowService,    
+    private readonly workflow: AttestationWorkflowService,
     private readonly userService: UserModelService,
-    private readonly extService: ExtService
-  ) {}
+    private readonly extService: ExtService,
+    authentication: AuthenticationService
+  ) {
+    authentication.onSessionResponse.subscribe((state) => (this.uidUser = state.UserUid ?? ''));
+  }
 
   public async directDecision(attestationCases: AttestationCase[], userUid: string): Promise<void> {
     const actionParameters = {
@@ -384,7 +397,7 @@ export class AttestationActionService {
         ColumnName: 'ReasonHead',
         Type: ValType.Text,
         IsMultiLine: true,
-        MinLen:metadata.mandatory ? 1 : 0
+        MinLen: metadata.mandatory ? 1 : 0,
       }),
       metadata.display || '#LDS#Reason for your decision'
     );
@@ -452,7 +465,7 @@ export class AttestationActionService {
 
     try {
       justification = await this.justification.createCdr(
-        approve ? JustificationType.approveAttestation : JustificationType.denyAttestation,
+        approve ? JustificationType.approveAttestation : JustificationType.denyAttestation
       );
     } finally {
       setTimeout(() => this.busyService.hide(busyIndicator));
@@ -479,6 +492,7 @@ export class AttestationActionService {
           Reason: actionParameters.reason.column.GetValue(),
           UidJustification: actionParameters.justification?.column?.GetValue(),
           Decision: approve,
+          SubLevel: this.getSubLevel(attestationCase, attestationCase.data),
         });
       },
     });
@@ -543,5 +557,27 @@ export class AttestationActionService {
       ),
       display || '#LDS#Identity'
     );
+  }
+
+  private getSubLevel(entity: TypedEntity, extended: any): number {
+    //get all workflowsteps for the current decision level
+    const steps = extended.WorkflowSteps?.Entities?.filter(
+      (elem) =>
+        elem?.Columns?.UID_QERWorkingMethod.Value === entity.GetEntity().GetColumn('UID_QERWorkingMethod').GetValue() &&
+        elem.Columns.LevelNumber.Value === entity.GetEntity().GetColumn('DecisionLevel').GetValue()
+    );
+    // get the Workflow data that
+    // - belong to one of the current workflow steps
+    // - can be decided by the user
+    // - are not decided yet
+    const data = steps.flatMap((step) =>
+      extended.WorkflowData.Entities.filter(
+        (elem) =>
+          elem?.Columns?.UID_QERWorkingStep.Value === step?.Columns?.UID_QERWorkingStep.Value &&
+          elem?.Columns?.UID_PersonHead.Value === this.uidUser &&
+          elem?.Columns?.Decision?.Value === ''
+      )
+    );
+    return data[0]?.Columns?.SubLevelNumber?.Value ?? 0; //return the sublevel number
   }
 }

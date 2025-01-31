@@ -30,4 +30,5 @@ import { EntityData } from 'imx-qbm-dbts';
 export interface Approvers {
   current: EntityData[];
   future: EntityData[];
+  canSeeSteps: boolean;
 }

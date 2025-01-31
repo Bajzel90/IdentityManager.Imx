@@ -91,15 +91,11 @@ export class AttestationCasesService {
   }
 
   public async get(
-    attDecisionParameters: AttestationDecisionLoadParameters,
-    isUserEscalationApprover = false
-  ): Promise<TypedEntityCollectionData<AttestationCase> | undefined> {
-    const collection = await this.attClient.typedClient.PortalAttestationApprove.Get(attDecisionParameters, {
-      signal: this.abortController.signal,
-    });
-    if (!collection) {
-      return undefined;
-    }
+    attDecisionParameters?: AttestationDecisionLoadParameters,
+    signal?: AbortSignal
+  ): Promise<TypedEntityCollectionData<AttestationCase>> {
+    const collection = await this.attClient.typedClient.PortalAttestationApprove.Get(attDecisionParameters, { signal });
+    if (!collection) return undefined;
     return {
       tableName: collection?.tableName,
       totalCount: collection?.totalCount,
@@ -111,7 +107,7 @@ export class AttestationCasesService {
           (treefilterparameter) => this.getFilterTree(treefilterparameter)
         );
 
-        return new AttestationCase(item, isUserEscalationApprover, parameterDataContainer, { ...collection?.extendedData, ...{ index } });
+        return new AttestationCase(item, parameterDataContainer, { ...collection?.extendedData, ...{ index } });
       }),
     };
   }
@@ -219,6 +215,7 @@ export class AttestationCasesService {
     return {
       current: approverContainer.approverNow,
       future: approverContainer.approverFuture,
+      canSeeSteps: approverContainer.canSeeSteps,
     };
   }
 
