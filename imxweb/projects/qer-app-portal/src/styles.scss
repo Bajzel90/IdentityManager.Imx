@@ -272,15 +272,15 @@ button[data-imx-identifier="attestation-action-button-save"],
 button[data-imx-identifier="workflow-action-button-save"],
 button[data-imx-identifier="workflow-action-save-button"],
 button[data-imx-identifier="subscription-details-button-save"],
+button[data-imx-identifier="emptycart-link-saveforlater"],
 imx-cdr-editor[data-imx-identifier="cdr-editor-ValidUntil"] .mat-form-field-suffix,
 imx-cdr-editor[data-imx-identifier="cdr-editor-ValidFrom"] .mat-form-field-suffix,
 imx-bulk-editor[data-imx-identifier="cart-item-param-editor"] .mat-form-field-suffix,
 imx-subscription-properties .mat-form-field-suffix,
-imx-cart-item-edit .mat-form-field-suffix
+imx-cart-item-edit .mat-form-field-suffix,
+.imx-report-form .mat-form-field-suffix
  { display: block!important; }
 
- button[data-imx-identifier="emptycart-link-saveforlater"] {
-    display: block!important;
- }
+
 
  
