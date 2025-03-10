@@ -86,8 +86,6 @@ export class FkHierarchicalDialogComponent implements OnInit, OnDestroy {
     if (data.fkRelations) {
       this.hierarchyService.fkTable = data.fkRelations.find((fkr) => fkr.TableName === data.selectedTableName) || data.fkRelations[0];
     }
-
-    this.filterTree = { filterMethode: async (parent) => this.hierarchyService.fkTable.GetFilterTree(parent) };
   }
 
   public ngOnDestroy(): void {
@@ -95,6 +93,11 @@ export class FkHierarchicalDialogComponent implements OnInit, OnDestroy {
   }
 
   public async ngOnInit(): Promise<void> {
+    const hasFilterTree = (await this.hierarchyService?.fkTable?.GetFilterTree(''))?.Elements?.length > 0;
+    if (hasFilterTree) {
+      this.filterTree = { filterMethode: async (parent) => this.hierarchyService.fkTable.GetFilterTree(parent) };
+    }
+
     await this.getPreselectedEntities();
     this.filters = (await this.hierarchyService?.fkTable?.GetDataModel())?.Filters;
     this.tableNames = this.data.fkRelations?.map((elem) => elem.TableName);
@@ -118,7 +121,7 @@ export class FkHierarchicalDialogComponent implements OnInit, OnDestroy {
     if (!this.data.isMultiValue) {
       this.selectedEntities = [entity];
       this.applySelection();
-    } 
+    }
   }
 
   public selectedNodesChanged(): void {

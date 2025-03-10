@@ -40,52 +40,48 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatButtonToggleChange } from '@angular/material/button-toggle';
-import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
+import { MatMenuTrigger } from '@angular/material/menu';
 import { MatSelectChange } from '@angular/material/select';
 import { MatTableDataSource } from '@angular/material/table';
-import { EuiSelectOption } from '@elemental-ui/core';
-import { Observable, Subject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { EuiSelectOption, EuiSidesheetService } from '@elemental-ui/core';
+import { TranslateService } from '@ngx-translate/core';
 import {
   CollectionLoadParameters,
-  SqlWizardExpression,
-  CompareOperator,
   DataModelFilterOption,
   EntitySchema,
   FilterData,
+  FilterTreeData,
   FilterType,
   IClientProperty,
-  IEntity,
+  SqlWizardExpression,
   TypedEntity,
   TypedEntityCollectionData,
   ValType,
-  FilterTreeData,
 } from 'imx-qbm-dbts';
+import { Observable, Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { AppConfigService } from '../appConfig/appConfig.service';
+import { BusyService } from '../base/busy.service';
+import { ConfirmationService } from '../confirmation/confirmation.service';
+import { DataExportComponent } from '../data-export/data-export.component';
+import { SnackBarService } from '../snackbar/snack-bar.service';
+import { SystemInfoService } from '../system-info/system-info.service';
+import { ColumnOptions } from './column-options';
+import { DataSourceItemStatus } from './data-source-item-status.interface';
 import { DataSourceToolbarFilter, DataSourceToolbarSelectedFilter } from './data-source-toolbar-filters.interface';
 import { DataSourceToolBarGroup, DataSourceToolBarGroupingCategory } from './data-source-toolbar-groups.interface';
-import { SelectionModelWrapper } from './selection-model-wrapper';
-import { DataSourceItemStatus } from './data-source-item-status.interface';
-import { FilterTreeComponent } from './filter-tree/filter-tree.component';
-import { FilterTreeSelectionArg } from './filter-tree/filter-tree-selection-arg.interface';
-import { ColumnOptions } from './column-options';
-import { EuiSidesheetService } from '@elemental-ui/core';
-import { FilterWizardComponent } from './filter-wizard/filter-wizard.component';
-import { DataExportComponent } from '../data-export/data-export.component';
-import { TranslateService } from '@ngx-translate/core';
-import { MatMenuTrigger } from '@angular/material/menu';
-import { SaveConfigDialogComponent } from './save-config-dialog/save-config-dialog.component';
-import { ConfirmationService } from '../confirmation/confirmation.service';
-import { DSTViewConfig } from './data-source-toolbar-view-config.interface';
-import { SnackBarService } from '../snackbar/snack-bar.service';
-import { FilterWizardService, selectedFiltersParams } from './filter-wizard/filter-wizard.service';
-import { BusyService } from '../base/busy.service';
-import { SystemInfoService } from '../system-info/system-info.service';
-import { AppConfigService } from '../appConfig/appConfig.service';
-import { FilterTypeIdentifier } from './filter-wizard/filter-wizard.interfaces';
 import { DataSourceToolbarSettings } from './data-source-toolbar-settings';
 import { isConfigDefault, isDefaultId } from './data-source-toolbar-view-config-helper';
+import { DSTViewConfig } from './data-source-toolbar-view-config.interface';
+import { FilterTreeSelectionArg } from './filter-tree/filter-tree-selection-arg.interface';
+import { FilterTreeComponent } from './filter-tree/filter-tree.component';
+import { FilterWizardComponent } from './filter-wizard/filter-wizard.component';
+import { FilterTypeIdentifier } from './filter-wizard/filter-wizard.interfaces';
+import { FilterWizardService, selectedFiltersParams } from './filter-wizard/filter-wizard.service';
+import { SaveConfigDialogComponent } from './save-config-dialog/save-config-dialog.component';
+import { SelectionModelWrapper } from './selection-model-wrapper';
 
 /**
  * The Datasource toolbar (DST) consist internally of a datasource and a toolbar view,
@@ -456,10 +452,13 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
    * Builds up the navigationState and columnOptions from a saved Config, emits a navigationStateChanged signal
    * @param config the DSTViewConfig
    */
-  public applyConfig(config: DSTViewConfig): void {
-    // Clear all old data, but don't emit any signals
-    this.resetView(false);
-    this.clearTreeFilter(false);
+  public applyConfig(config: DSTViewConfig, clear: boolean = true): void {
+    let emitNavigationStateChanged = true;
+    if (clear) {
+      // Clear all old data, but don't emit any signals
+      this.resetView(false);
+      this.clearTreeFilter(false);
+    }
 
     // Handle adding to the nav state
     this.settings.navigationState = {
@@ -485,6 +484,8 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
 
     if (config?.GroupBy) {
       this.applyGroupBy(config);
+      // don't update the navigate state twice, it's already done in applyGroupBy
+      emitNavigationStateChanged = false;
     }
 
     if (config?.AdditionalListColumns || config?.AdditionalTableColumns) {
@@ -497,7 +498,11 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
       this.applyDynamicPropsAsSelectedFilters(config);
     }
 
-    this.updateNavigateStateWithFilters();
+    if (!config && this.selectedFilters?.length === 0) {
+      emitNavigationStateChanged = false;
+    }
+
+    this.updateNavigateStateWithFilters(emitNavigationStateChanged);
   }
 
   /**
@@ -505,12 +510,21 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
    * @param config the DSTViewConfig
    */
   public applyGroupBy(config: DSTViewConfig): void {
-    const group = this.settings?.groupData?.groups?.find(
+    // search in the flat list of groups for the group from the config
+    let group = this.settings?.groupData?.groups?.find(
       (group) => this.getGroupColumnDisplay(group) === config.GroupBy || group.property.Property.ColumnName === config.GroupBy
     );
     if (group) {
-      this.onGroupSelected(group);
+      this.onGroupSelected(group, undefined, true);
     }
+
+    // search in the list of grouping categories and their groups for the group from the config
+    this.settings?.groupData?.groupingCategories?.find((category) => {
+      group = category.groups.find((group) => group.property.Value === config.GroupBy);
+      if (group?.property?.Value?.length > 0) {
+        this.onGroupSelected(group, category, true);
+      }
+    });
   }
 
   /**
@@ -569,7 +583,7 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
       ViewId: this.settings.viewConfig.viewId,
       DisplayName: displayName,
       Filter: this.settings?.navigationState?.filter,
-      GroupBy: this.settings?.groupData?.currentGrouping?.display,
+      GroupBy: this.getGroupBy(),
       OrderBy: this.settings?.navigationState?.OrderBy,
       AdditionalListColumns: this.columnOptions?.additionalListElements?.map((ele) => ele.ColumnName),
       AdditionalTableColumns: this.columnOptions?.selectedOptionals
@@ -805,10 +819,16 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
    */
   public get showDataSourceToolbar(): boolean {
     // When there is an active search or filtering, the toolbar should always be displayed
-    if (this.alwaysVisible || this.searchCurrenltyApplied || this.filtersCurrentlyApplied || this.filterWizardExpression) {
+    if (
+      this.alwaysVisible ||
+      this.searchCurrenltyApplied ||
+      this.filtersCurrentlyApplied ||
+      this.groupingCurrentlyApplied ||
+      this.filterWizardExpression
+    ) {
       return true;
     }
-    return this.searchCurrenltyApplied || this.filtersCurrentlyApplied || this.dataSourceHasData;
+    return this.searchCurrenltyApplied || this.filtersCurrentlyApplied || this.groupingCurrentlyApplied || this.dataSourceHasData;
   }
 
   public get dataSourceHasData(): boolean {
@@ -825,6 +845,10 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
 
   public get filtersCurrentlyApplied(): boolean {
     return this.selectedFilters?.length > 0 || this.currentFilterData?.length > 0;
+  }
+
+  public get groupingCurrentlyApplied(): boolean {
+    return !!this.settings?.groupData?.currentGrouping;
   }
 
   /**
@@ -867,7 +891,7 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
         const defaultSavedConfig = this.settings?.viewConfig?.viewConfigs?.find(
           (config) => this.isConfigDefault(config) && !this.isDefaultId(config)
         );
-        
+
         if (this.isInitialLoad) {
           await this.setInitialSortOptions();
           defaultSavedConfig ? this.applyConfig(defaultSavedConfig) : this.setInitialFilterValues();
@@ -919,7 +943,11 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
     }
 
     if (changes['disableSearch']) {
-      this.searchControl = new FormControl<string>({ value: '', disabled: this.disableSearch });
+      if (this.disableSearch) {
+        this.searchControl.disable();
+      } else {
+        this.searchControl.enable();
+      }
     }
   }
 
@@ -1017,26 +1045,6 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
 
   /**
    * @ignore Used internally.
-   * Is called internally when a single value option filter is selected (checkbox)
-   * Updates and emits the new navigationState to include any filter query params.
-   */
-  public onCheckboxFilterChanged(filter: DataSourceToolbarFilter, option: DataModelFilterOption, event: MatCheckboxChange): void {
-    let selectedFilterData: DataSourceToolbarSelectedFilter;
-    if (event.checked) {
-      if (filter.Delimiter) {
-        this.setDelimitedFilterCurrentValue(filter, option);
-      } else {
-        filter.CurrentValue = option.Value;
-      }
-      selectedFilterData = { selectedOption: option, filter };
-      this.selectedFilters.push(selectedFilterData);
-    } else {
-      this.removeSelectedFilter(filter, false, option.Value);
-    }
-    this.updateNavigateStateWithFilters();
-  }
-  /**
-   * @ignore Used internally.
    * Is called internally when a filter is removed from selected filters.
    * Updates and emits the new navigationState to include any filter query params.
    */
@@ -1046,67 +1054,6 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
       settingsFilter = selectedFilter.filter;
     }
     this.removeSelectedFilter(settingsFilter, true, optionValue, selectedFilter);
-  }
-
-  /**
-   * @ignore Used internally.
-   * Is called internally when a filter with multiple options has a new option selected (radio button or mapped select list)
-   * Updates and emits the new navigationState to include any filter query params.
-   */
-  public onRadioFilterChanged(filter: DataSourceToolbarFilter, option: DataModelFilterOption): void {
-    let selectedFilterData: DataSourceToolbarSelectedFilter;
-    filter.CurrentValue = option ? option.Value : undefined;
-    selectedFilterData = { selectedOption: option, filter };
-    const index = this.findSelectedFilterIndex(filter.Name);
-    if (index >= 0) {
-      this.selectedFilters[index] = selectedFilterData;
-    } else {
-      this.selectedFilters.push(selectedFilterData);
-    }
-    this.updateNavigateStateWithFilters();
-  }
-
-  /**
-   * @ignore Used internally.
-   * Is called internally when a filter with multiple (greater than 5 possible) options has a value selected (select list)
-   * Updates and emits the new navigationState to include any filter query params.
-   */
-  public selectFilterValueChanged(filter: DataSourceToolbarFilter, event: MatSelectChange): void {
-    const option = this.findFilterOptionFromValue(event.value, filter);
-    this.onRadioFilterChanged(filter, option);
-  }
-
-  /**
-   * @ignore Used internally.
-   * Is called internally when a filter with multiple non mutually exclusive (greater than 5 possible) options
-   * has a value selected (multi select list)
-   * Updates and emits the new navigationState to include any filter query params.
-   */
-  public multiSelectFilterValueChange(filter: DataSourceToolbarFilter, event: MatSelectChange): void {
-    filter.CurrentValue = undefined;
-    const relevantSelectedItems = this.selectedFilters.filter((sfilter) => sfilter.filter.Name === filter.Name);
-    relevantSelectedItems.forEach((rsi) => {
-      this.removeSelectedFilter(filter, false, rsi.selectedOption.Value);
-    });
-    event.value.forEach((value) => {
-      const option = this.findFilterOptionFromValue(value, filter);
-      this.selectedFilters.push({ selectedOption: option, filter });
-    });
-    this.rebuildSelectedDelimitedValue(filter);
-    this.updateNavigateStateWithFilters();
-  }
-
-  /**
-   * @ignore Used internally
-   * Called internally to get a string array value from the provided filters currentValue property
-   * for the multi select list
-   */
-  public getMultiSelectCurrentValue(filter: DataSourceToolbarFilter): string[] {
-    let display = [];
-    if (filter.Delimiter && filter.CurrentValue) {
-      display = filter.CurrentValue.split(filter.Delimiter);
-    }
-    return display;
   }
 
   /**
@@ -1373,13 +1320,19 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
    * @ignore Used internally in components template.
    * Will be called when a group by option is selected
    */
-  public onGroupSelected(group: DataSourceToolBarGroup, groupCategory?: DataSourceToolBarGroupingCategory): void {
+  public onGroupSelected(
+    group: DataSourceToolBarGroup,
+    groupCategory?: DataSourceToolBarGroupingCategory,
+    isInitial: boolean = false
+  ): void {
     this.settings.groupData.currentGrouping = {
       display: (groupCategory?.property.Display ? groupCategory.property.Display + ' - ' : '') + this.getGroupColumnDisplay(group),
       getData: group.getData,
       navigationState: group.navigationState,
     };
-    this.settingsChanged.emit(this.settings);
+    if (!isInitial) {
+      this.settingsChanged.emit(this.settings);
+    }
   }
 
   /**
@@ -1457,9 +1410,30 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
   public removeFilterWizard(reload: boolean = true): void {
     this.settings.navigationState.filter = this.settings.navigationState.filter?.filter((x) => x.Expression == null);
     this.filterWizardExpression = null;
-    if (reload) {
+    if (reload && (!this.groupingCurrentlyApplied || this.settings.groupData.isExpanded)) {
       this.navigationStateChanged.next(this.settings.navigationState);
     }
+  }
+
+  private getGroupBy(): string {
+    if (!this.settings?.groupData?.currentGrouping) {
+      return undefined;
+    }
+    const currentGroupingDisplay = this.settings?.groupData?.currentGrouping?.display;
+
+    // search in the flat list of groups for the group
+    let group = this.settings?.groupData?.groups?.find((group) => group.property.Property.Display === currentGroupingDisplay);
+    if (group?.property?.Property?.ColumnName?.length > 0) {
+      return group?.property?.Property?.ColumnName;
+    }
+
+    // search in the list of grouping categories and their groups for the group
+    const separatorIndex = currentGroupingDisplay.indexOf('\u2063');
+    const categoryDisplay = currentGroupingDisplay.substring(0, separatorIndex - 1);
+    const groupDisplay = currentGroupingDisplay.substring(separatorIndex + 4);
+    const groupCategory = this.settings?.groupData?.groupingCategories?.find((category) => category.property.Display === categoryDisplay);
+    group = groupCategory?.groups?.find((group) => group.property.Display === groupDisplay);
+    return group?.property?.Value;
   }
 
   /**
@@ -1657,7 +1631,10 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
       }
     });
 
-    this.applyConfig(this.settings?.viewConfig?.viewConfigs?.find((config) => this.isDefaultId(config)));
+    this.applyConfig(
+      this.settings?.viewConfig?.viewConfigs?.find((config) => this.isDefaultId(config)),
+      false
+    );
   }
 
   private async setInitialSortOptions(): Promise<void> {
@@ -1867,7 +1844,7 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
       }
     });
     this.settings.navigationState.StartIndex = 0;
-    if (!emit) {
+    if (!emit || (this.groupingCurrentlyApplied && !this.settings.groupData.isExpanded)) {
       return;
     }
     if (this.isDataSourceLocal) {

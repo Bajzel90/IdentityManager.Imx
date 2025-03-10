@@ -25,10 +25,10 @@
  */
 
 import { Injectable, OnDestroy } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
-import { Observable, Subscription } from 'rxjs';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
+import { Subscription } from 'rxjs';
 
-import { AppConfigService, AuthenticationService, ISessionState } from 'qbm';
+import { AppConfigService, AuthenticationService, RouteGuardService } from 'qbm';
 import { AobPermissionsService } from '../permissions/aob-permissions.service';
 
 @Injectable({
@@ -41,23 +41,21 @@ export class AobApplicationsGuardService implements CanActivate, OnDestroy {
     private readonly aobPermissionService: AobPermissionsService,
     private readonly authentication: AuthenticationService,
     private readonly appConfig: AppConfigService,
-    private readonly router: Router
-  ) { }
+    private readonly router: Router,
+    private readonly routeGuardService: RouteGuardService
+  ) {}
 
-  public canActivate(): Observable<boolean> {
-    return new Observable<boolean>((observer) => {
-      this.onSessionResponse = this.authentication.onSessionResponse.subscribe(async (sessionState: ISessionState) => {
-        if (sessionState.IsLoggedIn) {
-          const isApplicationOwner = await this.aobPermissionService.isAobApplicationOwner();
-          const isApplicationAdmin = await this.aobPermissionService.isAobApplicationAdmin();
-          if (!isApplicationOwner && !isApplicationAdmin) {
-            this.router.navigate([this.appConfig.Config.routeConfig.start], { queryParams: {} });
-          }
-          observer.next(isApplicationOwner || isApplicationAdmin);
-          observer.complete();
-        }
-      });
-    });
+  public async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
+    if (await this.routeGuardService.canActivate(route, state)) {
+      const isApplicationOwner = await this.aobPermissionService.isAobApplicationOwner();
+      const isApplicationAdmin = await this.aobPermissionService.isAobApplicationAdmin();
+      if (!isApplicationOwner && !isApplicationAdmin) {
+        this.router.navigate([this.appConfig.Config.routeConfig.start], { queryParams: {} });
+      }
+      return isApplicationOwner || isApplicationAdmin;
+    }
+    this.router.navigate([this.appConfig.Config.routeConfig.login]);
+    return false;
   }
 
   public ngOnDestroy(): void {

@@ -42,15 +42,17 @@ export class UserModelService {
   private pendingItemsCache: CachedPromise<PendingItemsType>;
   private cachedGroups: CachedPromise<UserGroupInfo[]>;
   private cachedFeatures: CachedPromise<UserFeatureInfo>;
+  private cachedUserConfig: CachedPromise<UserConfig>;
 
   constructor(private readonly qerClient: QerApiService, private readonly settingsService: SettingsService, cacheService: CacheService) {
     this.pendingItemsCache = cacheService.buildCache(() => this.qerClient.client.portal_pendingitems_get());
     this.cachedGroups = cacheService.buildCache(() => this.qerClient.client.portal_usergroups_get());
     this.cachedFeatures = cacheService.buildCache(() => this.qerClient.client.portal_features_get());
+    this.cachedUserConfig = cacheService.buildCache(() => this.qerClient.client.portal_person_config_get());
   }
 
   public getUserConfig(): Promise<UserConfig> {
-    return this.qerClient.client.portal_person_config_get();
+    return this.cachedUserConfig.get();
   }
 
   public getPendingItems(): Promise<PendingItemsType> {

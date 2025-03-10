@@ -28,6 +28,7 @@ import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { UserConfig } from 'imx-api-qer';
 import { QerApiService } from './qer-api-client.service';
+import { UserModelService } from './user/user-model.service';
 
 @Injectable({
   providedIn: 'root'
@@ -36,11 +37,12 @@ export class RequestsFeatureGuardService implements CanActivate {
 
   constructor(
     private qerService: QerApiService,
+    private readonly userService: UserModelService,
     private readonly router: Router
   ) { }
 
   public async getUserConfig(): Promise<UserConfig> {
-    return this.qerService.client.portal_person_config_get();
+    return this.userService.getUserConfig();
   }
 
   public async canActivate(): Promise<boolean> {

@@ -25,10 +25,10 @@
  */
 
 import { Injectable, OnDestroy } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
-import { Observable, Subscription } from 'rxjs';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
+import { Subscription } from 'rxjs';
 
-import { AppConfigService, AuthenticationService, ISessionState } from 'qbm';
+import { AppConfigService, AuthenticationService, RouteGuardService } from 'qbm';
 import { PermissionsService } from '../admin/permissions.service';
 
 @Injectable({
@@ -41,22 +41,21 @@ export class AttestionAdminGuardService implements CanActivate, OnDestroy {
     private readonly attPermissionService: PermissionsService,
     private readonly authentication: AuthenticationService,
     private readonly appConfig: AppConfigService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly routeGuardService: RouteGuardService
   ) {}
 
-  public canActivate(route: ActivatedRouteSnapshot, _: RouterStateSnapshot): Observable<boolean> {
-    return new Observable<boolean>((observer) => {
-      this.onSessionResponse = this.authentication.onSessionResponse.subscribe(async (sessionState: ISessionState) => {
-        if (sessionState.IsLoggedIn) {
-          const userIsAttestationAdmin = await this.attPermissionService.isAttestationAdmin();
-          if (!userIsAttestationAdmin) {            
-            this.router.navigate([this.appConfig.Config.routeConfig.start], { queryParams: {} } );
-          }
-          observer.next(userIsAttestationAdmin ? true : false);
-          observer.complete();
-        }
-      });
-    });
+  public async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
+    if (await this.routeGuardService.canActivate(route, state)) {
+      const userIsAttestationAdmin = await this.attPermissionService.isAttestationAdmin();
+      if (userIsAttestationAdmin) {
+        return true;
+      }
+      this.router.navigate([this.appConfig.Config.routeConfig.start]);
+    } else {
+      this.router.navigate([this.appConfig.Config.routeConfig.login]);
+    }
+    return false;
   }
 
   public ngOnDestroy(): void {

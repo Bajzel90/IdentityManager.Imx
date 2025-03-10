@@ -38,7 +38,7 @@ import { DateFormat } from 'imx-qbm-dbts';
 
 /**
  * Provides a {@link CdrEditor | CDR editor} for editing / viewing date value columns
- * 
+ *
  * It uses a {@link DateComponent | date component} for editing the value.
  * When set to read-only, it uses a {@link ViewPropertyComponent | view property component} to display the content.
  */
@@ -75,6 +75,12 @@ export class EditDateComponent implements CdrEditor, OnDestroy {
 
   private readonly subscribers: Subscription[] = [];
   private isWriting = false;
+  private previousValue: Moment | undefined;
+  /**
+   * We need to track error states incase external validation scripts are erroring on the current value.
+   * i.e original value is now invalid as too much time has passed while being in the shopping cart
+   */
+  private errorCount = 0;
 
   /**
    * Determines, if a time control should be added.
@@ -146,6 +152,14 @@ export class EditDateComponent implements CdrEditor, OnDestroy {
     }
   }
 
+
+  /**
+   * Resets the counted errors to 0.
+   */
+  public resetErrorCount(): void{
+    this.errorCount=0;
+  }
+
   /**
    * Sets Validators.required, if the control is mandatory, else it's set to null.
    * @ignore used internally
@@ -174,35 +188,36 @@ export class EditDateComponent implements CdrEditor, OnDestroy {
    * @param value The Moment object, that is used as the new value for the control.
    */
   private async writeValue(value: Moment): Promise<void> {
-    if (this.control.errors) {
+    if (this.control.errors || value?.isSame(this.previousValue)) {
       return;
     }
-
-    // Beware: the columnContainer used date while the date editor uses moment!!
+    this.previousValue = value;
     const date = value == null ? undefined : value.toDate();
-    const resetValue = this.columnContainer.value;
-    this.logger.debug(this, 'writeValue called with value', date);
-    if (!this.columnContainer.canEdit || this.columnContainer.value === date) {
+    const resetDate = this.columnContainer. value ? new Date(this.columnContainer.value) : undefined;
+    const resetMoment =resetDate ? moment(resetDate) : undefined;
+
+    if (!this.columnContainer.canEdit || (value && value.isSame(this.columnContainer.value)) || (!value && !this.columnContainer.value)) {
+      // if the value is the same, we don't need to update the value
       return;
     }
 
-    this.updateControlValue(value);
-
+    this.logger.debug(this, 'writeValue called with value', date);
+    // Try the api request first, if failed then don't update the control
     this.isBusy = true;
+    this.isWriting = true;
     try {
-      this.isWriting = true;
       await this.columnContainer.updateValue(date);
+      this.updateControlValue(value);
+      this.valueHasChanged.emit({ value: this.columnContainer.value, forceEmit: true });
+      this.errorCount = 0;
     } catch (error) {
+      this.errorCount += 1;
       this.errorHandler.handleError(error);
-      this.control?.setValue(resetValue ? moment(resetValue) : undefined);
+      // try to reset, but if we have errors too many times, we break the loop by setting empty
+      this.control?.setValue(this.errorCount < 2 ? resetMoment : undefined, { emitEvent: true });
     } finally {
       this.isBusy = false;
       this.isWriting = false;
-
-      // Writing could fail or not but in the end the columns value (date) and the controls value (moment) should be "equal".
-      this.resetControlValue();
     }
-
-    this.valueHasChanged.emit({ value: this.columnContainer.value, forceEmit: true });
   }
 }

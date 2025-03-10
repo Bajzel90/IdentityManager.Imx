@@ -156,9 +156,8 @@ export class DataExplorerGroupsComponent implements OnInit, OnDestroy, SideNavig
     const isBusy = this.busyService.beginBusy();
 
     try {
-      this.filterOptions = await this.groupsService.getFilterOptions(this.isAdmin);
-
       this.dataModel = await this.groupsService.getDataModel(this.isAdmin);
+      this.filterOptions = this.dataModel.Filters;
       this.viewConfigPath = this.isAdmin || this.unsAccountIdFilter ? 'targetsystem/uns/group' : 'resp/unsgroup';
       this.viewConfig = await this.viewConfigService.getInitialDSTExtension(this.dataModel, this.viewConfigPath);
     } finally {
@@ -183,7 +182,7 @@ export class DataExplorerGroupsComponent implements OnInit, OnDestroy, SideNavig
         requestableFliter.InitialValue = '0';
       }
     }
-    await this.navigate();
+    await this.navigate(true);
   }
 
   public ngOnDestroy(): void {
@@ -371,7 +370,7 @@ export class DataExplorerGroupsComponent implements OnInit, OnDestroy, SideNavig
     }
   }
 
-  private async navigate(): Promise<void> {
+  private async navigate(isInitialLoad: boolean = false): Promise<void> {
     const isBusy = this.busyService.beginBusy();
 
     const getParams: GetGroupsOptionalParameters = this.navigationState;
@@ -381,10 +380,11 @@ export class DataExplorerGroupsComponent implements OnInit, OnDestroy, SideNavig
         getParams.uid_unsaccount = this.unsAccountIdFilter;
       }
 
-      const data =
-        this.isAdmin || this.unsAccountIdFilter // Wenn wir filtern, muss auch der Admin-Endpoint genutzt werden
-          ? await this.groupsService.getGroups(getParams)
-          : await this.groupsService.getGroupsResp(getParams);
+      const data = isInitialLoad
+        ? { totalCount: 0, Data: [] }
+        : this.isAdmin || this.unsAccountIdFilter // Wenn wir filtern, muss auch der Admin-Endpoint genutzt werden
+        ? await this.groupsService.getGroups(getParams)
+        : await this.groupsService.getGroupsResp(getParams);
 
       if (data) {
         const exportMethod =
@@ -399,22 +399,24 @@ export class DataExplorerGroupsComponent implements OnInit, OnDestroy, SideNavig
           entitySchema: this.entitySchemaUnsGroup,
           navigationState: this.navigationState,
           filters: this.filterOptions,
-          filterTree: {
-            filterMethode: async (parentkey) => {
-              return this.groupsService.getFilterTree({
-                parentkey,
-                container: getParams.container,
-                system: getParams.system,
-                uid_unsaccount: getParams.uid_unsaccount,
-              });
-            },
-            multiSelect: false,
-          },
+          filterTree: isInitialLoad
+            ? undefined
+            : {
+                filterMethode: async (parentkey) => {
+                  return this.groupsService.getFilterTree({
+                    parentkey,
+                    container: getParams.container,
+                    system: getParams.system,
+                    uid_unsaccount: getParams.uid_unsaccount,
+                  });
+                },
+                multiSelect: false,
+              },
           dataModel: this.dataModel,
           viewConfig: this.viewConfig,
           exportMethod,
         };
-        this.logger.debug(this, `Head at ${data.Data.length + this.navigationState.StartIndex} of ${data.totalCount} item(s)`);
+        this.logger.debug(this, `Head at ${data?.Data?.length + this.navigationState.StartIndex} of ${data?.totalCount} item(s)`);
       }
     } finally {
       isBusy.endBusy();

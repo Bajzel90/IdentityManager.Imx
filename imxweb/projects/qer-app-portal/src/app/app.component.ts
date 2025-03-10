@@ -60,6 +60,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public showPageContent = true;
   private routerStatus: EventType;
   private readonly subscriptions: Subscription[] = [];
+  private profileSettings: ProfileSettings;
 
   constructor(
     private readonly authentication: AuthenticationService,
@@ -99,7 +100,8 @@ export class AppComponent implements OnInit, OnDestroy {
           const features = (await userModelService.getFeatures()).Features;
           const systemInfo = await systemInfoService.get();
           const groups = (await userModelService.getGroups()).map((group) => group.Name || '');
-          const isUseProfileLangChecked = (await this.qerClient.v2Client.portal_profile_get()).UseProfileLanguage ?? false;
+          this.profileSettings = await this.qerClient.v2Client.portal_profile_get();
+          const isUseProfileLangChecked = this.profileSettings.UseProfileLanguage ?? false;
           // Set session culture if isUseProfileLangChecked is true, set browser culture otherwise
           if (isUseProfileLangChecked) {
             await this.translationProvider.init(sessionState.culture, sessionState.cultureFormat);
@@ -198,9 +200,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private async applyProfileSettings() {
     try {
-      let profileSettings: ProfileSettings = await this.qerClient.client.portal_profile_get();
-      if (profileSettings?.PreferredAppThemes) {
-        this.themeService.setTheme(<EuiTheme>profileSettings.PreferredAppThemes);
+      if (this.profileSettings?.PreferredAppThemes) {
+        this.themeService.setTheme(<EuiTheme>this.profileSettings.PreferredAppThemes);
       }
     } catch (error) {
       this.errorHandler.handleError(error);

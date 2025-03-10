@@ -25,33 +25,47 @@
  */
 
 import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 import { AttestationConfig } from 'imx-api-att';
+import { AppConfigService, CacheService, RouteGuardService } from 'qbm';
 import { ApiService } from './api.service';
+import { CachedPromise } from 'imx-qbm-dbts';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AttestationFeatureGuardService implements CanActivate {
-
   constructor(
     private attService: ApiService,
-    private readonly router: Router
-  ) { }
+    private readonly appConfig: AppConfigService,
+    private readonly router: Router,
+    private readonly routeGuardService: RouteGuardService,
+    cacheService: CacheService
+  ) {
+    this.cachedAttestationConfig = cacheService.buildCache(() => this.attService.client.portal_attestation_config_get());
+  }
+  private config: Promise<AttestationConfig>;
 
-  public async getAttestationConfig(): Promise<AttestationConfig> {
-    return this.attService.client.portal_attestation_config_get();
+  // The cached promises cache the results of often needed API requests.
+  // The CacheService takes care of flushing the cache when re-authenticating.
+  private cachedAttestationConfig: CachedPromise<AttestationConfig>;
+
+  public getAttestationConfig(): Promise<AttestationConfig> {
+    this.config = this.cachedAttestationConfig.get();
+    return this.config;
   }
 
-  public async canActivate(): Promise<boolean> {
-    const attestationConfig = await this.getAttestationConfig();
+  public async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
+    if (await this.routeGuardService.canActivate(route, state)) {
+      this.getAttestationConfig();
 
-    const featureEnabled = attestationConfig?.IsAttestationEnabled;
-    if (featureEnabled) {
+      const featureEnabled = (await this.config)?.IsAttestationEnabled;
+      if (!featureEnabled) {
+        this.router.navigate([this.appConfig.Config.routeConfig.start]);
+      }
       return featureEnabled;
     }
-
-    this.router.navigate(['']);
+    this.router.navigate([this.appConfig.Config.routeConfig.login]);
     return false;
   }
 }

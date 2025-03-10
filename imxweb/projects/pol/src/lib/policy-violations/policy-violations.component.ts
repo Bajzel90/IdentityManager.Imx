@@ -142,7 +142,7 @@ export class PolicyViolationsComponent implements OnInit {
     } finally {
       isBusy.endBusy();
     }
-    return this.getData();
+    return this.getData(undefined);
   }
 
   public async viewDetails(selectedPolicyViolation: PolicyViolation): Promise<void> {
@@ -189,11 +189,13 @@ export class PolicyViolationsComponent implements OnInit {
     this.dstSettings.viewConfig = this.viewConfig;
   }
 
-  public async onGroupingChange(groupKey: string): Promise<void> {
+  public async onGroupingChange(groupInfo: { key: string; isInitial: boolean }): Promise<void> {
     const isBusy = this.busyService.beginBusy();
     try {
-      const groupedData = this.groupedData[groupKey];
-      groupedData.data = await this.policyViolationsService.get(this.approveOnly, groupedData.navigationState);
+      const groupedData = this.groupedData[groupInfo.key];
+      groupedData.data = groupInfo.isInitial
+        ? { totalCount: 0, Data: [] }
+        : await this.policyViolationsService.get(this.approveOnly, groupedData.navigationState);
       groupedData.settings = {
         displayedColumns: this.dstSettings.displayedColumns,
         dataModel: this.dstSettings.dataModel,

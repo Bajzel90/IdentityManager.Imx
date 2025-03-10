@@ -32,8 +32,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { CollectionLoadParameters, DisplayColumns, EntitySchema, IClientProperty, TypedEntity, XOrigin } from 'imx-qbm-dbts';
 
 import { ConfirmationService, DataSourceItemStatus, DataSourceToolbarSettings, DataTableComponent, SnackBarService } from 'qbm';
-import { SourceDetectiveSidesheetData } from '../../sourcedetective/sourcedetective-sidesheet.component';
-import { SourceDetectiveSidesheetComponent } from '../../sourcedetective/sourcedetective-sidesheet.component';
+import { SourceDetectiveSidesheetComponent, SourceDetectiveSidesheetData } from '../../sourcedetective/sourcedetective-sidesheet.component';
 import { SourceDetectiveType } from '../../sourcedetective/sourcedetective-type.enum';
 import { DataManagementService } from '../data-management.service';
 import { MembershipsChooseIdentitiesComponent } from '../memberships-choose-identities/memberships-choose-identities.component';
@@ -85,7 +84,7 @@ export class SecondaryMembershipsComponent implements OnInit {
   }
 
   public async ngOnInit(): Promise<void> {
-    this.entitySchema = this.roleService.getMembershipEntitySchema('get');
+    this.entitySchema = this.roleService.getMembershipEntitySchema();
     this.displayColumns = [
       this.entitySchema.Columns.UID_Person,
       this.entitySchema.Columns.XDateInserted,

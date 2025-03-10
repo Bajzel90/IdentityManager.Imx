@@ -351,7 +351,7 @@ export class NewRequestProductComponent implements OnInit, OnDestroy {
           firstIteration = false;
         } else {
           this.dynamicDataSource.setup(true);
-          this.getProductData(true);
+          await this.getProductData(true);
         }
       })
     );
@@ -376,14 +376,14 @@ export class NewRequestProductComponent implements OnInit, OnDestroy {
       this.orchestration.selectedCategory = node?.entity;
       // this.orchestration.includeChildCategories = this.includeChildCategories;
       this.accProductGroup = category.GetKeys()[0];
-      this.getProductData();
+      await this.getProductData();
     } else {
       // This is the root node and it has no entity
       this.orchestration.selectedCategory = null;
       this.includeChildCategories = false;
       // this.orchestration.includeChildCategories = this.includeChildCategories;
       this.accProductGroup = null;
-      this.getProductData();
+      await this.getProductData();
     }
 
     this.orchestration.includeChildCategories = this.includeChildCategories;

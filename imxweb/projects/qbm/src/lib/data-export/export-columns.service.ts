@@ -32,19 +32,20 @@ import _ from 'lodash';
 import { DataSourceToolbarSettings } from '../data-source-toolbar/data-source-toolbar-settings';
 
 export interface DSTExportState {
-  dataModel?: DataModel,
-  selectedExport?: FormControl,
-  exportOptions?: EuiSelectOption[],
-  isAllData?: boolean,
-  columns?: FormControl[],
-  columnOptions?: EuiSelectOption[]
+  dataModel?: DataModel;
+  selectedExport?: FormControl;
+  exportOptions?: EuiSelectOption[];
+  isAllData?: boolean;
+  columns?: FormControl[];
+  columnOptions?: EuiSelectOption[];
 }
-export interface FilteredColumnOption{
-  value: string; options: EuiSelectOption[];
+export interface FilteredColumnOption {
+  value: string;
+  options: EuiSelectOption[];
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ExportColumnsService {
   public columnOptions: EuiSelectOption[];
@@ -63,14 +64,15 @@ export class ExportColumnsService {
     {
       display: 'PDF',
       value: 'application/pdf',
-    }
+    },
   ];
-  public exportOptionsFilter = (option: EuiSelectOption, searchInputValue: string) => option.display.toLowerCase().includes(searchInputValue.toLowerCase());
+  public exportOptionsFilter = (option: EuiSelectOption, searchInputValue: string) =>
+    option.display.toLowerCase().includes(searchInputValue.toLowerCase());
 
   public columnOptionsFilter = (option: EuiSelectOption, searchInputValue: string) => {
     const sanitizedInput = searchInputValue.toLowerCase();
     return option.display.toLowerCase().includes(sanitizedInput) || option?.displayDetail?.toLowerCase().includes(sanitizedInput);
-  }
+  };
 
   // This function will check if the incoming data model is different from what exists.
   public setupExport(settings?: DataSourceToolbarSettings): void {
@@ -84,32 +86,41 @@ export class ExportColumnsService {
   }
 
   public checkDataModel(dataModel: DataModel): boolean {
-    const stashedProperties = this.stashedState.dataModel.Properties.map(column => column.Property.ColumnName);
-    const properties = dataModel.Properties.map(column => column.Property.ColumnName);
+    const stashedProperties = this.stashedState.dataModel.Properties.map((column) => column.Property.ColumnName);
+    const properties = dataModel.Properties.map((column) => column.Property.ColumnName);
     return _.isEqual(stashedProperties, properties);
   }
 
   // Saves the column options internally
   public createInitialState(settings: DataSourceToolbarSettings): void {
     // Column Options sorted alphebetically, not filtering by IsAdditional - this leads to empty exports
-    const columnOptions = settings.dataModel.Properties.map(prop => {
+
+    const columnOptions = settings.dataModel.Properties.map((prop) => {
       return this.makeOption(prop);
     });
-    columnOptions.sort((a, b) => a.display >= b.display ? 1: -1);
+    columnOptions.sort((a, b) => (a.display >= b.display ? 1 : -1));
+
+   
     const selectedExport = new FormControl('text/csv');
 
     // Check for initial columns, or try to use displayed columns
     const columns: FormControl[] = [];
     if (settings.exportMethod?.initialColumns) {
-      settings.exportMethod.initialColumns.forEach(column => {
-        const option = columnOptions.find(prop => prop.value === column);
+      // get additional columns from the configuration
+      const conf = settings.viewConfig?.viewConfigs?.find((elem) => elem.UseAsDefault);
+      const additional = conf?.AdditionalTableColumns ?? [];
+      // Create an unique, combined list
+      const columnsToDisplay = new Set(settings.exportMethod.initialColumns.concat(additional));
+
+      columnsToDisplay.forEach((column) => {
+        const option = columnOptions.find((prop) => prop.value === column);
         if (option) {
           columns.push(this.createColumn(option));
         }
-      })
+      });
     } else if (settings?.displayedColumns) {
-      settings.displayedColumns.forEach(column => {
-        const option = columnOptions.find(prop => prop.value === column.ColumnName);
+      settings.displayedColumns.forEach((column) => {
+        const option = columnOptions.find((prop) => prop.value === column.ColumnName);
         if (option) {
           columns.push(this.createColumn(option));
         }
@@ -127,8 +138,8 @@ export class ExportColumnsService {
       columns,
       isAllData: this.isAllData,
       selectedExport,
-      exportOptions: this.exportOptions
-    }
+      exportOptions: this.exportOptions,
+    };
   }
 
   // Setup an option for column export
@@ -137,8 +148,8 @@ export class ExportColumnsService {
     return {
       display,
       value: property.Property.ColumnName,
-      displayDetail: property.Property?.Description
-    }
+      displayDetail: property.Property?.Description,
+    };
   }
 
   // Create a new column for export
@@ -149,10 +160,10 @@ export class ExportColumnsService {
   // Stash the state of the sidesheet for later use
   public stashState(): void {
     // Filter out all invalid columns, leave one if all are invalid
-    if (this.stashedState.columns.every(column => column.invalid)) {
+    if (this.stashedState.columns.every((column) => column.invalid)) {
       this.stashedState.columns = [this.createColumn()];
     } else {
-      this.stashedState.columns = this.stashedState.columns.filter(column => column.valid);
+      this.stashedState.columns = this.stashedState.columns.filter((column) => column.valid);
     }
   }
 }

@@ -58,6 +58,7 @@ import { AttestationCaseLoadParameters } from '../attestation-history/attestatio
 import { AttestationCasesService } from '../decision/attestation-cases.service';
 import { RunsLoadParameters } from './runs-load-parameters.interface';
 import { SendReminderMailComponent } from './send-reminder-mail.component';
+import { AttestationFeatureGuardService } from '../attestation-feature-guard.service';
 
 @Injectable({
   providedIn: 'root',
@@ -69,6 +70,7 @@ export class RunsService {
 
   constructor(
     private readonly snackBar: SnackBarService,
+    private readonly attFeatureService : AttestationFeatureGuardService,
     private readonly attService: ApiService,
     private readonly elementalUiConfigService: ElementalUiConfigService,
     private readonly sideSheet: EuiSidesheetService,
@@ -183,7 +185,7 @@ export class RunsService {
   }
 
   public async attestationConfig(): Promise<AttestationConfig> {
-    return await this.attService.client.portal_attestation_config_get();
+    return await this.attFeatureService.getAttestationConfig();
   }
   
   public getSchemaForCases(): EntitySchema {

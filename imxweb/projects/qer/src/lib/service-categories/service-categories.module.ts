@@ -39,32 +39,29 @@ import {
   HelpContextualModule,
   MenuItem,
   MenuService,
-  RouteGuardService
+  RouteGuardService,
 } from 'qbm';
 
-import { ServiceCategoriesComponent } from './service-categories.component';
-import { ServiceCategoryComponent } from './service-category.component';
-import { ServiceItemsModule } from '../service-items/service-items.module';
 import { isShopAdmin, isShopStatistics } from '../admin/qer-permissions-helper';
 import { ShopGuardService } from '../guards/shop-guard.service';
+import { ServiceItemsModule } from '../service-items/service-items.module';
+import { ServiceCategoriesComponent } from './service-categories.component';
+import { ServiceCategoryComponent } from './service-category.component';
 
 const routes: Routes = [
   {
     path: 'configuration/servicecategories',
     component: ServiceCategoriesComponent,
-    canActivate: [RouteGuardService, ShopGuardService],
+    canActivate: [ShopGuardService],
     resolve: [RouteGuardService],
-    data:{
-      contextId: HELP_CONTEXTUAL.ServiceCategories
-    }
-  }
+    data: {
+      contextId: HELP_CONTEXTUAL.ServiceCategories,
+    },
+  },
 ];
 
 @NgModule({
-  declarations: [
-    ServiceCategoriesComponent,
-    ServiceCategoryComponent
-  ],
+  declarations: [ServiceCategoriesComponent, ServiceCategoryComponent],
   imports: [
     CdrModule,
     CommonModule,
@@ -76,44 +73,36 @@ const routes: Routes = [
     TranslateModule,
     ServiceItemsModule,
     HelpContextualModule,
-  ]
+  ],
 })
 export class ServiceCategoriesModule {
-
-  constructor(
-    private readonly menuService: MenuService,
-    logger: ClassloggerService) {
+  constructor(private readonly menuService: MenuService, logger: ClassloggerService) {
     logger.info(this, '▶︝ ServiceCategoriesModule loaded');
     this.setupMenu();
   }
 
   private setupMenu(): void {
-    this.menuService.addMenuFactories(
-      (preProps: string[], features: string[]) => {
+    this.menuService.addMenuFactories((preProps: string[], features: string[]) => {
+      const items: MenuItem[] = [];
 
-        const items: MenuItem[] = [];
+      if (isShopAdmin(features) || isShopStatistics(features)) {
+        items.push({
+          id: 'QER_Setup_Servicecategories',
+          route: 'configuration/servicecategories',
+          title: '#LDS#Menu Entry Service categories',
+          sorting: '60-30',
+        });
+      }
 
-        if (isShopAdmin(features) || isShopStatistics(features)) {
-          items.push(
-            {
-              id: 'QER_Setup_Servicecategories',
-              route: 'configuration/servicecategories',
-              title: '#LDS#Menu Entry Service categories',
-              sorting: '60-30'
-            }
-          );
-        }
-
-        if (items.length === 0) {
-          return null;
-        }
-        return {
-          id: 'ROOT_Setup',
-          title: '#LDS#Setup',
-          sorting: '60',
-          items
-        };
-      },
-    );
+      if (items.length === 0) {
+        return null;
+      }
+      return {
+        id: 'ROOT_Setup',
+        title: '#LDS#Setup',
+        sorting: '60',
+        items,
+      };
+    });
   }
 }

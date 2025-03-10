@@ -30,7 +30,7 @@
     >
       <imx-calendar
         [control]="shadowDate" [min]="min" [max]="max"
-        (close)="isDatePickerOpen=false"
+        (close)="handleClose()"
         cdkTrapFocus [cdkTrapFocus]="true" [cdkTrapFocusAutoCapture]="true">
       </imx-calendar>
     </ng-template>
@@ -45,7 +45,7 @@
       (overlayOutsideClick)="handleTimePickerOutsideClick($event)"
     >
         <imx-time-picker
-          class="mat-datepicker-content" [control]="shadowTime" (close)="isTimePickerOpen=false"
+          class="mat-datepicker-content" [control]="shadowTime" (close)="handleClose()"
           cdkTrapFocus [cdkTrapFocus]="true" [cdkTrapFocusAutoCapture]="true">
         </imx-time-picker>
     </ng-template>

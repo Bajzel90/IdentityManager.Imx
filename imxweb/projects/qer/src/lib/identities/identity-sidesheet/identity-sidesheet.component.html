@@ -50,92 +50,97 @@
       </div>
     </ng-template>
   </mat-tab>
-  <mat-tab [label]="'#LDS#Heading Main Data' | translate">
-    <div eui-sidesheet-content class="governance-sidesheet__tab-content">
-      <div class="governance-sidesheet__tab-content-body">
-        <eui-alert *ngIf="isIdentityMarkedForDelete" class="imx-helper-alert" type="info" [condensed]="true" [colored]="true" [dismissable]="true">
-          {{ '#LDS#This identity will be deleted.' | translate }}
-        </eui-alert>
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <span translate>#LDS#Heading Main Data</span>
+    </ng-template>
+    <ng-template matTabContent>
+      <div eui-sidesheet-content class="governance-sidesheet__tab-content">
+        <div class="governance-sidesheet__tab-content-body">
+          <eui-alert *ngIf="isIdentityMarkedForDelete" class="imx-helper-alert" type="info" [condensed]="true" [colored]="true" [dismissable]="true">
+            {{ '#LDS#This identity will be deleted.' | translate }}
+          </eui-alert>
 
-        <div>
-          <eui-badge color="red" class="imx-security-badge" *ngIf="data.selectedIdentity.IsSecurityIncident.value === true">
-            {{ '#LDS#Security risk' | translate }}
-          </eui-badge>
-        </div>
-        <form [formGroup]="detailsFormGroup">
-          <div class="imx-toggle-container">
-            <mat-slide-toggle
-              *ngIf="data.isAdmin"
-              class="custom-toggle"
-              [disabled]="!data.canEdit"
-              #toggle
-              [formControl]="isActiveFormControl"
-              (change)="onIsActiveToggleChanged($event)"
-              [attr.data-imx-identifier]="'identity-sidesheet-toggle-for-column-' + data.selectedIdentity.IsInActive.Column.ColumnName"
-            >
-              <span [translate]="toggle.checked ? '#LDS#Identity is active' : '#LDS#Identity is inactive'"></span>
-            </mat-slide-toggle>
-
-            <mat-slide-toggle
-              class="custom-toggle"
-              #incidentToggle
-              [disabled]="!data.canEdit"
-              [formControl]="isSecurityIncidentFormControl"
-              *ngIf="canMarkedAsIncident"
-              (change)="onIsSecurityIncidentToggleChanged($event)"
-              [attr.data-imx-identifier]="'identity-sidesheet-toggle-for-column-' + data.selectedIdentity.IsSecurityIncident.Column.ColumnName"
-            >
-              <span [translate]="incidentToggle.checked ? '#LDS#Identity poses a security risk' : '#LDS#Identity does not pose a security risk'"></span>
-            </mat-slide-toggle>
+          <div>
+            <eui-badge color="red" class="imx-security-badge" *ngIf="data.selectedIdentity.IsSecurityIncident.value === true">
+              {{ '#LDS#Security risk' | translate }}
+            </eui-badge>
           </div>
-          <mat-accordion>
-            <mat-expansion-panel [expanded]="true" *ngIf="cdrListPersonal.length > 0">
-              <mat-expansion-panel-header>
-                <mat-panel-title>
-                  {{ '#LDS#Personal data' | translate }}
-                </mat-panel-title>
-              </mat-expansion-panel-header>
-              <imx-cdr-editor
-                *ngFor="let cdr of cdrListPersonal"
-                [cdr]="cdr"
-                (readOnlyChanged)="update(cdr, cdrListPersonal)"
-                (controlCreated)="detailsFormGroup.addControl(cdr.column.ColumnName, $event)"
+          <form [formGroup]="detailsFormGroup">
+            <div class="imx-toggle-container">
+              <mat-slide-toggle
+                *ngIf="data.isAdmin"
+                class="custom-toggle"
+                [disabled]="!data.canEdit"
+                #toggle
+                [formControl]="isActiveFormControl"
+                (change)="onIsActiveToggleChanged($event)"
+                [attr.data-imx-identifier]="'identity-sidesheet-toggle-for-column-' + data.selectedIdentity.IsInActive.Column.ColumnName"
               >
-              </imx-cdr-editor>
-            </mat-expansion-panel>
-            <mat-expansion-panel *ngIf="cdrListOrganizational.length > 0">
-              <mat-expansion-panel-header>
-                <mat-panel-title>
-                  {{ '#LDS#Organizational information' | translate }}
-                </mat-panel-title>
-              </mat-expansion-panel-header>
-              <imx-cdr-editor
-                *ngFor="let cdr of cdrListOrganizational"
-                [cdr]="cdr"
-                (readOnlyChanged)="update(cdr, cdrListOrganizational)"
-                (controlCreated)="detailsFormGroup.addControl(cdr.column.ColumnName, $event)"
-              >
-              </imx-cdr-editor>
-            </mat-expansion-panel>
-            <mat-expansion-panel *ngIf="cdrListLocality.length > 0">
-              <mat-expansion-panel-header>
-                <mat-panel-title>
-                  {{ '#LDS#Location information' | translate }}
-                </mat-panel-title>
-              </mat-expansion-panel-header>
-              <imx-cdr-editor
-                *ngFor="let cdr of cdrListLocality"
-                [cdr]="cdr"
-                (readOnlyChanged)="update(cdr, cdrListLocality)"
-                (controlCreated)="detailsFormGroup.addControl(cdr.column.ColumnName, $event)"
-              >
-              </imx-cdr-editor>
-            </mat-expansion-panel>
-          </mat-accordion>
-        </form>
-      </div>
+                <span [translate]="toggle.checked ? '#LDS#Identity is active' : '#LDS#Identity is inactive'"></span>
+              </mat-slide-toggle>
 
-    </div>
+              <mat-slide-toggle
+                class="custom-toggle"
+                #incidentToggle
+                [disabled]="!data.canEdit"
+                [formControl]="isSecurityIncidentFormControl"
+                *ngIf="canMarkedAsIncident"
+                (change)="onIsSecurityIncidentToggleChanged($event)"
+                [attr.data-imx-identifier]="'identity-sidesheet-toggle-for-column-' + data.selectedIdentity.IsSecurityIncident.Column.ColumnName"
+              >
+                <span [translate]="incidentToggle.checked ? '#LDS#Identity poses a security risk' : '#LDS#Identity does not pose a security risk'"></span>
+              </mat-slide-toggle>
+            </div>
+            <mat-accordion>
+              <mat-expansion-panel [expanded]="true" *ngIf="cdrListPersonal.length > 0">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    {{ '#LDS#Personal data' | translate }}
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <imx-cdr-editor
+                  *ngFor="let cdr of cdrListPersonal"
+                  [cdr]="cdr"
+                  (readOnlyChanged)="update(cdr, cdrListPersonal)"
+                  (controlCreated)="detailsFormGroup.addControl(cdr.column.ColumnName, $event)"
+                >
+                </imx-cdr-editor>
+              </mat-expansion-panel>
+              <mat-expansion-panel *ngIf="cdrListOrganizational.length > 0">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    {{ '#LDS#Organizational information' | translate }}
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <imx-cdr-editor
+                  *ngFor="let cdr of cdrListOrganizational"
+                  [cdr]="cdr"
+                  (readOnlyChanged)="update(cdr, cdrListOrganizational)"
+                  (controlCreated)="detailsFormGroup.addControl(cdr.column.ColumnName, $event)"
+                >
+                </imx-cdr-editor>
+              </mat-expansion-panel>
+              <mat-expansion-panel *ngIf="cdrListLocality.length > 0">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    {{ '#LDS#Location information' | translate }}
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <imx-cdr-editor
+                  *ngFor="let cdr of cdrListLocality"
+                  [cdr]="cdr"
+                  (readOnlyChanged)="update(cdr, cdrListLocality)"
+                  (controlCreated)="detailsFormGroup.addControl(cdr.column.ColumnName, $event)"
+                >
+                </imx-cdr-editor>
+              </mat-expansion-panel>
+            </mat-accordion>
+          </form>
+        </div>
+
+      </div>
+    </ng-template>
   </mat-tab>
   <mat-tab>
     <ng-template mat-tab-label>

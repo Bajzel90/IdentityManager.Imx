@@ -82,7 +82,7 @@ export class PoliciesComponent implements OnInit {
       this.filterOptions[indexActive].InitialValue = '1';
       this.navigationState.active = '1';
     }
-    await this.navigate({});
+    await this.navigate({}, true);
   }
 
   public async showDetails(selectedPolicy: PortalPolicies): Promise<void> {
@@ -105,13 +105,13 @@ export class PoliciesComponent implements OnInit {
       .toPromise();
   }
 
-  public async navigate(parameter: CollectionLoadParameters): Promise<void> {
+  public async navigate(parameter: CollectionLoadParameters, isInitialLoad: boolean = false): Promise<void> {
     const isBusy = this.busyService.beginBusy();
 
     this.navigationState = { ...this.navigationState, ...parameter };
 
     try {
-      const data = await this.policiesProvider.getPolicies(this.navigationState);
+      const data = isInitialLoad ? { totalCount: 0, Data: [] } : await this.policiesProvider.getPolicies(this.navigationState);
       if (data) {
         this.dstSettings = {
           displayedColumns: this.displayedColumns,

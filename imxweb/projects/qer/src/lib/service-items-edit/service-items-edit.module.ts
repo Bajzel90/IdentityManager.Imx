@@ -24,37 +24,43 @@
  *
  */
 
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
 import { EuiCoreModule, EuiMaterialModule } from '@elemental-ui/core';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { CdrModule, ClassloggerService, DataSourceToolbarModule, DataTableModule, HELP_CONTEXTUAL, HelpContextualModule, MenuItem, MenuService, RouteGuardService } from 'qbm';
-import { ServiceItemsEditComponent } from './service-items-edit.component';
-import { ServiceItemsEditSidesheetComponent } from './service-items-edit-sidesheet/service-items-edit-sidesheet.component';
-import { ShopAdminGuardService } from '../guards/shop-admin-guard.service';
+import {
+  CdrModule,
+  ClassloggerService,
+  DataSourceToolbarModule,
+  DataTableModule,
+  HELP_CONTEXTUAL,
+  HelpContextualModule,
+  MenuItem,
+  MenuService,
+} from 'qbm';
 import { isShopAdmin } from '../admin/qer-permissions-helper';
-import { ServiceItemsEditFormModule } from './service-items-edit-form/service-items-edit-form.module';
+import { ShopAdminGuardService } from '../guards/shop-admin-guard.service';
 import { ObjectHyperviewModule } from '../object-hyperview/object-hyperview.module';
+import { ServiceItemsEditFormModule } from './service-items-edit-form/service-items-edit-form.module';
+import { ServiceItemsEditSidesheetComponent } from './service-items-edit-sidesheet/service-items-edit-sidesheet.component';
+import { ServiceItemsEditComponent } from './service-items-edit.component';
 
 const routes: Routes = [
   {
     path: 'admin/serviceitems',
     component: ServiceItemsEditComponent,
-    canActivate: [RouteGuardService, ShopAdminGuardService],
-    data:{
-      contextId: HELP_CONTEXTUAL.ServiceItems
-    }
+    canActivate: [ShopAdminGuardService],
+    data: {
+      contextId: HELP_CONTEXTUAL.ServiceItems,
+    },
   },
 ];
 
 @NgModule({
-  declarations: [
-    ServiceItemsEditComponent,
-    ServiceItemsEditSidesheetComponent,
-  ],
+  declarations: [ServiceItemsEditComponent, ServiceItemsEditSidesheetComponent],
   imports: [
     CommonModule,
     CdrModule,
@@ -68,44 +74,36 @@ const routes: Routes = [
     ServiceItemsEditFormModule,
     TranslateModule,
     HelpContextualModule,
-  ]
+  ],
 })
 export class ServiceItemsEditModule {
-
-  constructor(
-    private readonly menuService: MenuService,
-    logger: ClassloggerService) {
+  constructor(private readonly menuService: MenuService, logger: ClassloggerService) {
     logger.info(this, '▶️ ServiceItemsEditModule loaded');
     this.setupMenu();
   }
 
   private setupMenu(): void {
-    this.menuService.addMenuFactories(
-      (preProps: string[], features: string[]) => {
+    this.menuService.addMenuFactories((preProps: string[], features: string[]) => {
+      const items: MenuItem[] = [];
 
-        const items: MenuItem[] = [];
+      if (isShopAdmin(features)) {
+        items.push({
+          id: 'QER_ServiceItems',
+          navigationCommands: { commands: ['admin', 'serviceitems'] },
+          title: '#LDS#Menu Entry Service items',
+          sorting: '60-40',
+        });
+      }
 
-        if (isShopAdmin(features)) {
-          items.push(
-            {
-              id: 'QER_ServiceItems',
-              navigationCommands: { commands: ['admin', 'serviceitems'] },
-              title: '#LDS#Menu Entry Service items',
-              sorting: '60-40',
-            },
-          );
-        }
-
-        if (items.length === 0) {
-          return null;
-        }
-        return {
-          id: 'ROOT_Setup',
-          title: '#LDS#Setup',
-          sorting: '60',
-          items
-        };
-      },
-    );
+      if (items.length === 0) {
+        return null;
+      }
+      return {
+        id: 'ROOT_Setup',
+        title: '#LDS#Setup',
+        sorting: '60',
+        items,
+      };
+    });
   }
 }

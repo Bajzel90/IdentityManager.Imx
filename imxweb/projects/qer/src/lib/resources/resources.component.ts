@@ -87,7 +87,7 @@ export class ResourcesComponent implements OnInit, SideNavigationComponent {
     private readonly busy: EuiLoadingService,
     private readonly ldsReplace: LdsReplacePipe,
     private readonly translate: TranslateService,
-    private readonly logger: ClassloggerService,
+    private readonly logger: ClassloggerService
   ) {}
 
   public async ngOnInit(): Promise<void> {

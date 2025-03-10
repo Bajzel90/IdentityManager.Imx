@@ -24,10 +24,12 @@
  *
  */
 
-import { ActivatedRouteSnapshot, ParamMap, DefaultUrlSerializer } from '@angular/router';
+import { ActivatedRouteSnapshot, DefaultUrlSerializer, ParamMap, Params } from '@angular/router';
 
 export class QueryParametersHandler {
-  public get path(): string { return this.lastPath || this.route?.routeConfig?.path; }
+  public get path(): string {
+    return this.lastPath || this.route?.routeConfig?.path;
+  }
 
   private readonly urlSerializer = new DefaultUrlSerializer();
   private readonly queryParametersCollection: ParamMap[] = [];
@@ -50,12 +52,12 @@ export class QueryParametersHandler {
     }
   }
 
-  public GetQueryParameters(filter: (name: string) => boolean = null): { [key: string]: any } {
+  public GetQueryParameters(filter: (name: string) => boolean = null): Params {
     const outparams: { [id: string]: any } = {};
-    this.queryParametersCollection.forEach(params => {
+    this.queryParametersCollection.forEach((params) => {
       if (params.keys) {
         params.keys
-          .filter(name => filter == null || filter(name))
+          .filter((name) => filter == null || filter(name))
           .forEach((name: string) => {
             outparams[name] = params.get(name);
           });
