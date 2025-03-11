@@ -82,7 +82,7 @@ export class ViolationsPerRuleComponent implements OnInit {
       this.dataModelWrapper
     );
 
-    await this.getData(undefined, true);
+    await this.getData(undefined);
   }
 
   /**
@@ -136,13 +136,12 @@ export class ViolationsPerRuleComponent implements OnInit {
    * Loads the dstSettings with load parameters
    * @param parameter Load parameter
    */
-  public async getData(parameter?: CollectionLoadParameters, isInitialLoad: boolean = false): Promise<void> {
+  public async getData(parameter?: CollectionLoadParameters): Promise<void> {
     this.rulesViolationsService.handleOpenLoader();
     try {
       const dstSettings = await this.dstWrapper.getDstSettings(
         parameter,
-        { signal: this.rulesViolationsService.abortController.signal },
-        isInitialLoad
+        { signal: this.rulesViolationsService.abortController.signal }
       );
       if (dstSettings) {
         this.dstSettings = dstSettings;

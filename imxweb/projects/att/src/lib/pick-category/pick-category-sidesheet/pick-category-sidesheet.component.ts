@@ -90,16 +90,15 @@ export class PickCategorySidesheetComponent implements OnInit {
     this.uidPickCategory = this.data.pickCategory.GetEntity()?.GetKeys()?.join(',');
     this.displayNameCdr = new BaseCdr(this.data.pickCategory.DisplayName.Column, '#LDS#Display name');
     this.displayNameCdr.minLength = 1;
-    await this.getData(undefined, true);
+    await this.getData(undefined);
   }
 
-  public async getData(newState?: CollectionLoadParameters, isInitialLoad: boolean = false): Promise<void> {
+  public async getData(newState?: CollectionLoadParameters): Promise<void> {
     const isBusy = this.busyService.beginBusy();
     try {
       const dstSettings = await this.dstWrapper.getDstSettings(
         newState,
-        { signal: this.pickCategoryService.abortController.signal },
-        isInitialLoad
+        { signal: this.pickCategoryService.abortController.signal }
       );
       if (dstSettings) {
         this.dstSettings = dstSettings;

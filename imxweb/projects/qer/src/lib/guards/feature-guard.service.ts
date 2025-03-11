@@ -25,11 +25,11 @@
  */
 
 import { Injectable, OnDestroy } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, Router } from '@angular/router';
-import { Observable, Subscription, of } from 'rxjs';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
+import { Subscription } from 'rxjs';
 
+import { AppConfigService, RouteGuardService } from 'qbm';
 import { QerPermissionsService } from '../admin/qer-permissions.service';
-import { AppConfigService, AuthenticationService, ISessionState } from 'qbm';
 
 @Injectable({
   providedIn: 'root',
@@ -39,29 +39,21 @@ export class FeatureGuardService implements CanActivate, OnDestroy {
 
   constructor(
     private readonly qerPermissionService: QerPermissionsService,
-    private readonly authentication: AuthenticationService,
     private readonly appConfig: AppConfigService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly routeGuardService: RouteGuardService
   ) {}
 
-  public canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {
-    if (route?.data?.features) {
-      return new Observable<boolean>((observer) => {
-        this.onSessionResponse = this.authentication.onSessionResponse.subscribe(async (sessionState: ISessionState) => {
-          if (sessionState.IsLoggedIn) {
-            const hasFeature = await this.qerPermissionService.hasFeatures(route.data.features);
-            if (!hasFeature) {
-              this.router.navigate([this.appConfig.Config.routeConfig.start], { queryParams: {} });
-            }
-            observer.next(hasFeature);
-            observer.complete();
-          }
-        });
-      });
-    } else {
-      // We need either feature or features to guard, return false
-      return of(false);
+  public async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
+    if (await this.routeGuardService.canActivate(route, state)) {
+      const hasFeature = await this.qerPermissionService.hasFeatures(route.data.features);
+      if (!hasFeature) {
+        this.router.navigate([this.appConfig.Config.routeConfig.start], { queryParams: {} });
+      }
+      return hasFeature;
     }
+    this.router.navigate([this.appConfig.Config.routeConfig.login]);
+    return false;
   }
 
   public ngOnDestroy(): void {

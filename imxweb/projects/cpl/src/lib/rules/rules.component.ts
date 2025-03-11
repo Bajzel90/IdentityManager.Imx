@@ -118,7 +118,7 @@ export class RulesComponent implements OnInit {
       if (!this.canRecalculate) {
         this.displayedColumns.pop();
       }
-      await this.navigate({});
+      await this.navigate({}, true);
     } finally {
       isBusy.endBusy();
     }
@@ -178,12 +178,12 @@ export class RulesComponent implements OnInit {
     }
   }
 
-  public async navigate(parameter: CollectionLoadParameters): Promise<void> {
+  public async navigate(parameter: CollectionLoadParameters, isInitialLoad: boolean = false): Promise<void> {
     this.navigationState = { ...this.navigationState, ...parameter };
 
     const isBusy = this.busyService.beginBusy();
     try {
-      const data = await this.rulesProvider.getRules(this.navigationState);
+      const data = isInitialLoad ? { totalCount: 0, Data: [] } : await this.rulesProvider.getRules(this.navigationState);
       if (data) {
         const exportMethod = this.rulesProvider.exportRules(this.navigationState);
         exportMethod.initialColumns = this.displayedColumns.map((col) => col.ColumnName);

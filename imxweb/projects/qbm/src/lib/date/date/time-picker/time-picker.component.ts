@@ -59,6 +59,7 @@ export class TimePickerComponent {
    */
   public onValueChange(value: Moment): void {
     this.control.setValue(value);
+    this.close.emit();
   }
 
   /**

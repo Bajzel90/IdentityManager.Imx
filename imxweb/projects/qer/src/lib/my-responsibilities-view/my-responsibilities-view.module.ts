@@ -39,13 +39,13 @@ const routes: Routes = [
   {
     path: 'myresponsibilities',
     component: MyResponsibilitiesViewComponent,
-    canActivate: [RouteGuardService, ApplicationGuardService],
+    canActivate: [ApplicationGuardService],
     resolve: [RouteGuardService],
   },
   {
     path: 'myresponsibilities/:tab',
     component: MyResponsibilitiesViewComponent,
-    canActivate: [RouteGuardService, ApplicationGuardService],
+    canActivate: [ApplicationGuardService],
     resolve: [RouteGuardService],
   },
 ];

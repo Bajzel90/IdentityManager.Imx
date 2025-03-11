@@ -575,7 +575,7 @@ export class DataTableComponent<T> implements OnInit, OnChanges, AfterViewInit, 
 
       this.propagateNavigationSettingsToGroups(true);
       if (groupData.isExpanded) {
-        this.groupDataChanged.emit({ key: groupingDisplay, isInitial: true });
+        this.groupDataChanged.emit({ key: groupingDisplay, isInitial: false });
       }
     }
   }

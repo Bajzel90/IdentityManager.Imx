@@ -117,7 +117,7 @@ export class DataExplorerAccountsComponent implements OnInit, OnDestroy, SideNav
     const isBusy = this.busyService.beginBusy();
 
     try {
-      this.dataModel = await this.accountsService.getDataModel();      
+      this.dataModel = await this.accountsService.getDataModel();
       this.filterOptions = this.dataModel.Filters;
       this.viewConfig = await this.viewConfigService.getInitialDSTExtension(this.dataModel, this.viewConfigPath);
     } finally {
@@ -238,7 +238,7 @@ export class DataExplorerAccountsComponent implements OnInit, OnDestroy, SideNav
       getParams.system = tsUid ? tsUid : undefined;
       getParams.container = cUid ? cUid : undefined;
 
-      const data = isInitialLoad ? { totalCount: 0, Data: [] } :  await this.accountsService.getAccounts(getParams);
+      const data = isInitialLoad ? { totalCount: 0, Data: [] } : await this.accountsService.getAccounts(getParams);
       if (data) {
         const exportMethod: DataSourceToolbarExportMethod = this.accountsService.exportAccounts(this.navigationState);
         exportMethod.initialColumns = this.displayedColumns.map((col) => col.ColumnName);
@@ -248,17 +248,19 @@ export class DataExplorerAccountsComponent implements OnInit, OnDestroy, SideNav
           entitySchema: this.entitySchemaUnsAccount,
           navigationState: this.navigationState,
           filters: this.filterOptions,
-          filterTree: {
-            filterMethode: async (parentkey) => {
-              return this.accountsService.getFilterTree({
-                parentkey,
-                container: getParams.container,
-                system: getParams.system,
-                filter: getParams.filter,
-              });
-            },
-            multiSelect: false,
-          },
+          filterTree: isInitialLoad
+            ? undefined
+            : {
+                filterMethode: async (parentkey) => {
+                  return this.accountsService.getFilterTree({
+                    parentkey,
+                    container: getParams.container,
+                    system: getParams.system,
+                    filter: getParams.filter,
+                  });
+                },
+                multiSelect: false,
+              },
           dataModel: this.dataModel,
           viewConfig: this.viewConfig,
           exportMethod,

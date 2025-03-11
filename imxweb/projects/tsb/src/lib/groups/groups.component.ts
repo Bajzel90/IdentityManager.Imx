@@ -380,10 +380,11 @@ export class DataExplorerGroupsComponent implements OnInit, OnDestroy, SideNavig
         getParams.uid_unsaccount = this.unsAccountIdFilter;
       }
 
-      const data = isInitialLoad ? { totalCount: 0, Data: [] } : 
-        this.isAdmin || this.unsAccountIdFilter // Wenn wir filtern, muss auch der Admin-Endpoint genutzt werden
-          ? await this.groupsService.getGroups(getParams)
-          : await this.groupsService.getGroupsResp(getParams);
+      const data = isInitialLoad
+        ? { totalCount: 0, Data: [] }
+        : this.isAdmin || this.unsAccountIdFilter // Wenn wir filtern, muss auch der Admin-Endpoint genutzt werden
+        ? await this.groupsService.getGroups(getParams)
+        : await this.groupsService.getGroupsResp(getParams);
 
       if (data) {
         const exportMethod =
@@ -398,17 +399,19 @@ export class DataExplorerGroupsComponent implements OnInit, OnDestroy, SideNavig
           entitySchema: this.entitySchemaUnsGroup,
           navigationState: this.navigationState,
           filters: this.filterOptions,
-          filterTree: {
-            filterMethode: async (parentkey) => {
-              return this.groupsService.getFilterTree({
-                parentkey,
-                container: getParams.container,
-                system: getParams.system,
-                uid_unsaccount: getParams.uid_unsaccount,
-              });
-            },
-            multiSelect: false,
-          },
+          filterTree: isInitialLoad
+            ? undefined
+            : {
+                filterMethode: async (parentkey) => {
+                  return this.groupsService.getFilterTree({
+                    parentkey,
+                    container: getParams.container,
+                    system: getParams.system,
+                    uid_unsaccount: getParams.uid_unsaccount,
+                  });
+                },
+                multiSelect: false,
+              },
           dataModel: this.dataModel,
           viewConfig: this.viewConfig,
           exportMethod,

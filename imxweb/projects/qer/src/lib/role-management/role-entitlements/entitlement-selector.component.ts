@@ -64,7 +64,8 @@ export class EntitlementSelectorComponent {
       roleEntity: IEntity
     }
   ) {
-    this.ReinitData();
+    // Choose first element, otherwise only init
+    this.sidesheetData?.entitlementTypes?.[0] ? this.optionSelected(this.sidesheetData.entitlementTypes[0]) : this.reinitData();
   }
 
   public get types(): RoleAssignmentData[] {
@@ -79,10 +80,10 @@ export class EntitlementSelectorComponent {
     this.selectedType = newType;
     this.fkEntity = this.roleService.createEntitlementAssignmentEntity(this.sidesheetData.roleEntity, newType);
     this.fk = this.fkEntity.GetFkCandidateProvider().getProviderItem(newType.EntitlementFk, newType.TableName);
-    this.ReinitData();
+    this.reinitData();
     this.selectedItems = [];
-    this.fkCandidatesComponent.clearSelection();
-    this.fkCandidatesComponent.clearTreeFilter();
+    this.fkCandidatesComponent?.clearSelection();
+    this.fkCandidatesComponent?.clearTreeFilter();
   }
 
 
@@ -109,7 +110,7 @@ export class EntitlementSelectorComponent {
   /**
    * Sets the data object to trigger the changes event on the Fk candidate selector
    */
-  private ReinitData(): void {
+  private reinitData(): void {
     this.data = {
       get: parameters => {
         if (!this.fk) {

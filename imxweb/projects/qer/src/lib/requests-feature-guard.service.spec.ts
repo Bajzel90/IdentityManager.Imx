@@ -29,6 +29,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { QerApiService } from './qer-api-client.service';
 import { RequestsFeatureGuardService } from './requests-feature-guard.service';
 import { StartComponent } from './wport/start/start.component';
+import { UserModelService } from './user/user-model.service';
 
 describe('RequestsFeatureGuardService', () => {
   let service: RequestsFeatureGuardService;
@@ -36,7 +37,11 @@ describe('RequestsFeatureGuardService', () => {
   const sessionServiceStub = {
     client: {
       portal_person_config_get: jasmine.createSpy('portal_person_config_get').and.returnValue(Promise.resolve([{}])),
-    }
+    },
+  };
+
+  const userServiceStub = {
+    getUserConfig: jasmine.createSpy('getUserConfig').and.returnValue(Promise.resolve([{}])),
   };
 
   beforeEach(() => {
@@ -45,9 +50,13 @@ describe('RequestsFeatureGuardService', () => {
       providers: [
         {
           provide: QerApiService,
-          useValue: sessionServiceStub
-        }
-      ]
+          useValue: sessionServiceStub,
+        },
+        {
+          provide: UserModelService,
+          useValue: userServiceStub,
+        },
+      ],
     });
     service = TestBed.inject(RequestsFeatureGuardService);
   });

@@ -127,7 +127,7 @@ export class ItshopPatternSidesheetComponent implements OnInit, OnDestroy {
     }
   }
 
-  public async getData(parameter?: CollectionLoadParameters, isInitialLoad: boolean = false): Promise<void> {
+  public async getData(parameter?: CollectionLoadParameters): Promise<void> {
     const isBusy = this.busyService.beginBusy();
     try {
       const filteredState: CollectionLoadParameters = {
@@ -145,7 +145,7 @@ export class ItshopPatternSidesheetComponent implements OnInit, OnDestroy {
         ...parameter,
         ...filteredState,
       };
-      const dstSettings = await this.dstWrapper.getDstSettings(parameters, { signal: this.patternService.abortController.signal }, isInitialLoad);
+      const dstSettings = await this.dstWrapper.getDstSettings(parameters, { signal: this.patternService.abortController.signal });
       if (dstSettings) {
         this.dstSettings = dstSettings;
       }
@@ -159,7 +159,7 @@ export class ItshopPatternSidesheetComponent implements OnInit, OnDestroy {
 
     if (this.selectedTabIndex === 1) {
       // load data for the product-tab
-      await this.getData(undefined, true);
+      await this.getData(undefined);
     }
   }
 

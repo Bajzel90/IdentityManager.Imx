@@ -56,12 +56,6 @@ import { EsetEntitlements } from './eset-entitlements';
 import { EsetMembership } from './eset-membership';
 import { RmsApiService } from './rms-api-client.service';
 
-export interface test {
-  GetSchema(): EntitySchema;
-  Get_byid(id: string): Promise<ExtendedTypedEntityCollection<TypedEntity, unknown>>;
-  Get(): Promise<ExtendedTypedEntityCollection<PortalAdminRoleEset, unknown>>;
-}
-
 @Injectable({ providedIn: 'root' })
 export class InitService {
   private esetTag = 'ESet';
@@ -72,7 +66,6 @@ export class InitService {
     private readonly api: RmsApiService,
     private readonly session: imx_SessionService,
     private readonly translator: ImxTranslationProviderService,
-    private readonly dynamicMethodSvc: DynamicMethodService,
     private readonly dataExplorerRegistryService: DataExplorerRegistryService,
     private readonly menuService: MenuService,
     private readonly roleService: RoleService,
@@ -154,7 +147,7 @@ export class InitService {
       adminCanCreate: true,
       interactiveResp: new ApiWrapper(this.api.typedClient.PortalRespEsetInteractive),
       interactiveAdmin: new ApiWrapper(this.api.typedClient.PortalAdminRoleEsetInteractive),
-      entitlements: new EsetEntitlements(this.api, this.dynamicMethodSvc, this.translator),
+      entitlements: new EsetEntitlements(this.api, this.translator),
       membership: new EsetMembership(this.api, this.session, this.translator),
       canUseRecommendations: true,
       exportMethod: (navigationState: CollectionLoadParameters, isAdmin: boolean) => {

@@ -88,20 +88,20 @@ export class EditReportComponent implements OnInit, OnDestroy {
       this.entitySchema
     );
 
-    await this.getData(undefined, true);
+    await this.getData(undefined);
   }
 
   public ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
-  public async getData(parameter?: CollectionLoadParameters, isInitialLoad: boolean = true): Promise<void> {
+  public async getData(parameter?: CollectionLoadParameters): Promise<void> {
     const isBusy = this.busyService.beginBusy();
     try {
       const parameters = {
         ...parameter,
       };
-      this.dstSettings = await this.dstWrapper.getDstSettings(parameters, undefined, isInitialLoad);
+      this.dstSettings = await this.dstWrapper.getDstSettings(parameters, undefined);
     } finally {
       isBusy.endBusy();
     }

@@ -24,7 +24,7 @@
  *
  */
 
-import { Component, Input, OnDestroy, OnInit, ViewChild, OnChanges } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { EuiSidesheetService } from '@elemental-ui/core';
 import { TranslateService } from '@ngx-translate/core';
@@ -69,7 +69,7 @@ import { ViewConfigService } from '../view-config/view-config.service';
   styleUrls: ['./request-table.component.scss'],
   selector: 'imx-request-table',
 })
-export class RequestTableComponent implements OnInit, OnDestroy, OnChanges {
+export class RequestTableComponent implements OnInit, OnDestroy {
   public additional: IClientProperty[] = [];
   public get entitySchema(): EntitySchema {
     return this.requestHistoryService.PortalItshopRequestsSchema;
@@ -187,12 +187,6 @@ export class RequestTableComponent implements OnInit, OnDestroy, OnChanges {
     );
   }
 
-  ngOnChanges() {
-    if (this.uidRecipient) {
-      this.getData();
-    }
-  }
-
   public async ngOnInit(): Promise<void> {
     this.displayedColumns = [
       this.entitySchema.Columns.DisplayOrg,
@@ -211,7 +205,7 @@ export class RequestTableComponent implements OnInit, OnDestroy, OnChanges {
       this.dataModel = await this.requestHistoryService.getDataModel(this.userUid);
       this.viewConfig = await this.viewConfigService.getInitialDSTExtension(this.dataModel, this.viewConfigPath);
       this.activatedRoute.queryParams.subscribe((params) => this.updateFiltersFromRouteParams(params));
-      this.filterOptions = await this.requestHistoryService.getFilterOptions(this.userUid, this.filterPresets);
+      this.filterOptions = await this.requestHistoryService.getFilterOptions(this.userUid, this.filterPresets, this.dataModel);
       this.itShopConfig = (await this.projectConfig.getConfig()).ITShopConfig;
 
       await this.getData(null, true);

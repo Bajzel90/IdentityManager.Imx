@@ -73,10 +73,10 @@ export class PickCategorySelectIdentitiesComponent implements OnInit {
   }
 
   public async ngOnInit(): Promise<void> {
-    await this.getData(undefined, true);
+    await this.getData(undefined);
   }
 
-  public async getData(navigationState?: CollectionLoadParameters, isInitialLoad: boolean = false): Promise<void> {
+  public async getData(navigationState?: CollectionLoadParameters): Promise<void> {
     const isBusy = this.busyService.beginBusy();
 
     try {
@@ -84,7 +84,7 @@ export class PickCategorySelectIdentitiesComponent implements OnInit {
         ...navigationState,
         ...{ filter: await this.getFilter() },
       };
-      this.dstSettings = await this.dstWrapper.getDstSettings(navigationState, undefined, isInitialLoad);
+      this.dstSettings = await this.dstWrapper.getDstSettings(navigationState, undefined);
     } finally {
       isBusy.endBusy();
     }

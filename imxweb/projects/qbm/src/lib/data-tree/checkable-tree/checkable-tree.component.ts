@@ -121,7 +121,7 @@ export class CheckableTreeComponent implements OnChanges, AfterViewInit, OnDestr
       this.logger.debug(this, `initialize the treeDatasource`);
       this.treeDataSource = new TreeDatasource(this.treeControl, this.database);
       this.treeDataSource.emptyNodeCaption = this.emptyNodeCaption;
-      this.treeDataSource.init(await this.database?.initialize(this.navigationState, !changes['database'].firstChange));
+      this.treeDataSource.init(await this.database?.initialize(this.navigationState));
       this.subscriptions.push(
         this.treeDataSource.dataChange.subscribe((elem) => {
           this.treeRendered.emit();

@@ -30,6 +30,7 @@ import {
   EntityCollectionData,
   EntitySchema,
   ExtendedTypedEntityCollection,
+  FkCandidateRouteDto,
   IEntity,
   TypedEntity,
   XOrigin
@@ -53,7 +54,7 @@ export interface IRoleMembershipType {
 
   delete(role: string, identity: string): Promise<EntityCollectionData>;
 
-  getSchema(key: string): EntitySchema;
+  GetSchema(): EntitySchema;
 
   GetUidRole(entity: IEntity): string;
 
@@ -74,33 +75,68 @@ type CandidateParameters = CollectionLoadParameters & { xorigin?: XOrigin };
 export abstract class BaseMembership implements IRoleMembershipType {
 
   public supportsDynamicMemberships = true;
-  protected readonly schemaPaths: Map<string, string> = new Map();
-  protected basePath = '';
+  declare fkCandidateRoute: FkCandidateRouteDto;
+  declare basePath: string;
+  declare columnName: string;
+  declare dynamicRoleUrl: string;
 
   constructor(
-    protected readonly session: imx_SessionService
-  ) { }
+    private readonly _api: any,
+    private _session: imx_SessionService,
+    private readonly _translator: ImxTranslationProviderService,
+  ) {}
 
-  public abstract get(id: string, navigationState?: CollectionLoadParameters): Promise<ExtendedTypedEntityCollection<TypedEntity, unknown>>;
+  public setRoleName(role: string, columnName: string): void {
+    this.basePath = `portal/roles/config/membership/${role}`; //hard coded as almost all of the candidate roles exist only as fk urls
+    this.columnName = columnName;
+    this.dynamicRoleUrl = `${this.basePath}/{${columnName}}`;
+    this.getFkRoute();
+  }
 
-  public abstract getCandidates(
+  private getFkRoute(): void {
+    this.fkCandidateRoute = this.GetSchema().FkCandidateRoutes.find((route) => route.ColumnName === 'UID_Person');
+  }
+
+  public GetSchema(url?: string): EntitySchema {
+    return this._api.client.getSchema(url ? url : this.dynamicRoleUrl);
+  }
+
+  public async get(id: string, navigationState?: CollectionLoadParameters): Promise<ExtendedTypedEntityCollection<TypedEntity, unknown>> {
+    const api = new DynamicMethod(this.dynamicRoleUrl, `/${this.basePath}/${id}`, this._api.apiClient, this._session, this._translator);
+    return api.Get(navigationState);
+  }
+
+  public async getCandidates(
     id: string,
-    navigationState?: CandidateParameters
-  ): Promise<ExtendedTypedEntityCollection<TypedEntity, unknown>>;
+    navigationState?: CandidateParameters,
+  ): Promise<ExtendedTypedEntityCollection<TypedEntity, unknown>> {
+    
+    const schemaPath =( this.fkCandidateRoute?.Url?.[0] === '/' ? this.fkCandidateRoute.Url.substring(1) : this.fkCandidateRoute.Url);
+    const api = new DynamicMethod(schemaPath, (this.fkCandidateRoute?.Url), this._api.apiClient, this._session, this._translator);
+    if (this.fkCandidateRoute?.HttpMethod === 'GET') {
+      return api.Get(navigationState);
+    }
 
-  public abstract getCandidatesDataModel(id: string): Promise<DataModel>;
+    const state = {};
+    state[this.columnName] = id;
+    return api.Post(state, navigationState ?? {});
+  }
+
+  public async getCandidatesDataModel(): Promise<DataModel> {
+    const schemaPath = this.fkCandidateRoute?.Url?.[0] === '/' ? this.fkCandidateRoute.Url.substring(1) : this.fkCandidateRoute.Url;
+    const api = new DynamicMethod(schemaPath, this.fkCandidateRoute?.Url, this._api.apiClient, this._session, this._translator);
+    return api.getDataModei();
+  }
 
   public abstract delete(role: string, identity: string): Promise<EntityCollectionData>;
-
-  public getSchema(key: string): EntitySchema {
-    return this.session.Client.getSchema(this.schemaPaths.get(key));
-  }
 
   public GetUidPerson(entity: IEntity): string {
     return entity.GetColumn('UID_Person').GetValue();
   }
 
-  public abstract GetUidRole(entity: IEntity): string;
+  public GetUidRole(entity: IEntity): string {
+    return entity.GetColumn(this.columnName).GetValue();
+  }
 
   /** Returns a flag indicating whether primary memberships
    * are possible for this role type.
@@ -119,52 +155,12 @@ export abstract class BaseMembership implements IRoleMembershipType {
 // tslint:disable-next-line: max-classes-per-file
 export class LocalityMembership extends BaseMembership {
   constructor(
-    private readonly api: QerApiService,
-    session: imx_SessionService,
-    private readonly translator: ImxTranslationProviderService
+    private api: QerApiService,
+    private session: imx_SessionService,
+    private translator: ImxTranslationProviderService,
   ) {
-    super(session);
-    this.basePath = 'portal/roles/config/membership/Locality';
-    this.schemaPaths.set('get', `${this.basePath}/{UID_Locality}`);
-    this.schemaPaths.set('candidates', `${this.basePath}/{UID_Locality}/UID_Person/candidates`);
-  }
-
-  public async get(id: string, navigationState?: CollectionLoadParameters): Promise<ExtendedTypedEntityCollection<TypedEntity, unknown>> {
-    const api = new DynamicMethod(
-      this.schemaPaths.get('get'),
-      `/portal/roles/config/membership/Locality/${id}`,
-      this.api.apiClient,
-      this.session,
-      this.translator
-    );
-
-    return api.Get(navigationState);
-  }
-
-  public async getCandidates(
-    id: string,
-    navigationState?: CandidateParameters
-  ): Promise<ExtendedTypedEntityCollection<TypedEntity, unknown>> {
-    const api = new DynamicMethod(
-      this.schemaPaths.get('candidates'),
-      `/${this.basePath}/${id}/UID_Person/candidates`,
-      this.api.apiClient,
-      this.session,
-      this.translator
-    );
-
-    return api.Get(navigationState);
-  }
-
-  public async getCandidatesDataModel(id: string): Promise<DataModel> {
-    const dynamicMethod = new DynamicMethod(
-      this.schemaPaths.get('candidates'),
-      `/${this.basePath}/${id}/UID_Person/candidates`,
-      this.api.apiClient,
-      this.session,
-      this.translator
-    );
-    return dynamicMethod.getDataModei();
+    super(api, session, translator);
+    this.setRoleName('Locality', 'UID_Locality');
   }
 
   public async delete(role: string, identity: string): Promise<EntityCollectionData> {
@@ -173,11 +169,6 @@ export class LocalityMembership extends BaseMembership {
 
   public hasPrimaryMemberships(): boolean {
     return true;
-  }
-
-
-  public GetUidRole(entity: IEntity): string {
-    return entity.GetColumn("UID_Locality").GetValue();
   }
 
   public getPrimaryMembers(
@@ -196,52 +187,12 @@ export class LocalityMembership extends BaseMembership {
 // tslint:disable-next-line: max-classes-per-file
 export class ProfitCenterMembership extends BaseMembership {
   constructor(
-    private readonly api: QerApiService,
-    session: imx_SessionService,
-    private readonly translator: ImxTranslationProviderService
+    private api: QerApiService,
+    private session: imx_SessionService,
+    private translator: ImxTranslationProviderService,
   ) {
-    super(session);
-    this.basePath = 'portal/roles/config/membership/ProfitCenter';
-    this.schemaPaths.set('get', `${this.basePath}/{UID_ProfitCenter}`);
-    this.schemaPaths.set('candidates', `${this.basePath}/{UID_ProfitCenter}/UID_Person/candidates`);
-  }
-
-  public async get(id: string, navigationState?: CollectionLoadParameters): Promise<ExtendedTypedEntityCollection<TypedEntity, unknown>> {
-    const api = new DynamicMethod(
-      this.schemaPaths.get('get'),
-      `/${this.basePath}/${id}`,
-      this.api.apiClient,
-      this.session,
-      this.translator
-    );
-
-    return api.Get(navigationState);
-  }
-
-  public async getCandidates(
-    id: string,
-    navigationState?: CandidateParameters
-  ): Promise<ExtendedTypedEntityCollection<TypedEntity, unknown>> {
-    const api = new DynamicMethod(
-      this.schemaPaths.get('candidates'),
-      `/${this.basePath}/${id}/UID_Person/candidates`,
-      this.api.apiClient,
-      this.session,
-      this.translator
-    );
-
-    return api.Get(navigationState);
-  }
-
-  public async getCandidatesDataModel(id: string): Promise<DataModel> {
-    const dynamicMethod = new DynamicMethod(
-      this.schemaPaths.get('candidates'),
-      `/${this.basePath}/${id}/UID_Person/candidates`,
-      this.api.apiClient,
-      this.session,
-      this.translator
-    );
-    return dynamicMethod.getDataModei();
+    super(api, session, translator);
+    this.setRoleName('ProfitCenter', 'UID_ProfitCenter');
   }
 
   public async delete(role: string, identity: string): Promise<EntityCollectionData> {
@@ -252,9 +203,6 @@ export class ProfitCenterMembership extends BaseMembership {
     return true;
   }
 
-  public GetUidRole(entity: IEntity): string {
-    return entity.GetColumn("UID_ProfitCenter").GetValue();
-  }
 
   public getPrimaryMembers(uid: string, navigationstate: CollectionLoadParameters): Promise<ExtendedTypedEntityCollection<any, any>> {
     return this.api.typedClient.PortalRolesConfigProfitcenterPrimarymembers.Get(uid, navigationstate);
@@ -268,51 +216,12 @@ export class ProfitCenterMembership extends BaseMembership {
 // tslint:disable-next-line: max-classes-per-file
 export class DepartmentMembership extends BaseMembership {
   constructor(
-    private readonly api: QerApiService,
-    session: imx_SessionService,
-    private readonly translator: ImxTranslationProviderService
+    private api: QerApiService,
+    private session: imx_SessionService,
+    private translator: ImxTranslationProviderService,
   ) {
-    super(session);
-    this.basePath = 'portal/roles/config/membership/Department';
-    this.schemaPaths.set('get', `${this.basePath}/{UID_Department}`);
-    this.schemaPaths.set('candidates', `${this.basePath}/{UID_Department}/UID_Person/candidates`);
-  }
-  public async get(id: string, navigationState?: CollectionLoadParameters): Promise<ExtendedTypedEntityCollection<TypedEntity, unknown>> {
-    const api = new DynamicMethod(
-      this.schemaPaths.get('get'),
-      `/${this.basePath}/${id}`,
-      this.api.apiClient,
-      this.session,
-      this.translator
-    );
-
-    return api.Get(navigationState);
-  }
-
-  public async getCandidates(
-    id: string,
-    navigationState?: CandidateParameters
-  ): Promise<ExtendedTypedEntityCollection<TypedEntity, unknown>> {
-    const api = new DynamicMethod(
-      this.schemaPaths.get('candidates'),
-      `/${this.basePath}/${id}/UID_Person/candidates`,
-      this.api.apiClient,
-      this.session,
-      this.translator
-    );
-
-    return api.Get(navigationState);
-  }
-
-  public async getCandidatesDataModel(id: string): Promise<DataModel> {
-    const dynamicMethod = new DynamicMethod(
-      this.schemaPaths.get('candidates'),
-      `/${this.basePath}/${id}/UID_Person/candidates`,
-      this.api.apiClient,
-      this.session,
-      this.translator
-    );
-    return dynamicMethod.getDataModei();
+    super(api, session, translator);
+    this.setRoleName('Department', 'UID_Department');
   }
 
   public async delete(role: string, identity: string): Promise<EntityCollectionData> {
@@ -340,64 +249,22 @@ export class DepartmentMembership extends BaseMembership {
 // tslint:disable-next-line: max-classes-per-file
 export class AERoleMembership extends BaseMembership {
   constructor(
-    private readonly api: QerApiService,
-    session: imx_SessionService,
-    private readonly translator: ImxTranslationProviderService
+    private api: QerApiService,
+    private session: imx_SessionService,
+    private translator: ImxTranslationProviderService,
   ) {
-    super(session);
-    this.basePath = 'portal/roles/config/membership/AERole';
-    this.schemaPaths.set('get', `${this.basePath}/{UID_AERole}`);
-    this.schemaPaths.set('candidates', `${this.basePath}/{UID_AERole}/UID_Person/candidates`);
-  }
-  public async get(id: string, navigationState?: CollectionLoadParameters): Promise<ExtendedTypedEntityCollection<TypedEntity, unknown>> {
-    const api = new DynamicMethod(
-      this.schemaPaths.get('get'),
-      `/${this.basePath}/${id}`,
-      this.api.apiClient,
-      this.session,
-      this.translator
-    );
-
-    return api.Get(navigationState);
+    super(api, session, translator);
+    this.setRoleName('AERole', 'UID_AERole');
   }
 
   public async delete(role: string, identity: string): Promise<EntityCollectionData> {
     return this.api.client.portal_roles_config_membership_AERole_delete(role, identity);
   }
 
-  public async getCandidates(
-    id: string,
-    navigationState?: CandidateParameters
-  ): Promise<ExtendedTypedEntityCollection<TypedEntity, unknown>> {
-    const api = new DynamicMethod(
-      this.schemaPaths.get('candidates'),
-      `/${this.basePath}/${id}/UID_Person/candidates`,
-      this.api.apiClient,
-      this.session,
-      this.translator
-    );
-
-    return api.Get(navigationState);
-  }
-
-  public async getCandidatesDataModel(id: string): Promise<DataModel> {
-    const dynamicMethod = new DynamicMethod(
-      this.schemaPaths.get('candidates'),
-      `/${this.basePath}/${id}/UID_Person/candidates`,
-      this.api.apiClient,
-      this.session,
-      this.translator
-    );
-    return dynamicMethod.getDataModei();
-  }
-
   public hasPrimaryMemberships(): boolean {
     return false;
   }
 
-  public GetUidRole(entity: IEntity): string {
-    return entity.GetColumn("UID_AERole").GetValue();
-  }
 
   public getPrimaryMembers(): Promise<ExtendedTypedEntityCollection<any, any>> {
     throw new Error('Application roles do not allow primary memberships.');

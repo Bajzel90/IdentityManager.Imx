@@ -79,6 +79,11 @@ export class DynamicMethod {
     return this.builder.buildReadWriteEntities(data, this.getSchema());
   }
 
+  async Post(pathData: { [key: string]: string }, queryData: { [key: string]: any }, inputParameterName: any = {}) {
+    const data = await this.apiClient.processRequest(this.do_post(pathData, queryData, inputParameterName));
+    return this.builder.buildReadWriteEntities(data, this.getSchema());
+  }
+
   public async getDataModei(options: { filter?: FilterData[] } = {}): Promise<DataModel> {
     return this.apiClient.processRequest(this.do_getDataModel(options));
   }
@@ -140,6 +145,46 @@ export class DynamicMethod {
       method: 'PUT',
       headers: {
         'imx-timezone': TimeZoneInfo.get()
+      },
+      credentials: 'include',
+      observe: 'response',
+      responseType: 'json',
+    };
+  }
+
+  private do_post(
+    pathData: { [key: string]: string },
+    queryData: { [key: string]: string },
+    inputParameterName: any,
+  ): MethodDescriptor<EntityCollectionData> {
+    const parameters: any[] = [];
+    for (var p of Object.keys(pathData)) {
+      parameters.push({
+        name: p,
+        value: pathData[p],
+        in: 'path',
+      });
+    }
+    for (var p of Object.keys(queryData)) {
+      parameters.push({
+        name: p,
+        value: queryData[p],
+        in: 'query',
+      });
+    }
+    parameters.push({
+      name: 'inputParameterName',
+      value: inputParameterName,
+      required: true,
+      in: 'body',
+    });
+
+    return {
+      path: this.path,
+      parameters,
+      method: 'POST',
+      headers: {
+        'imx-timezone': TimeZoneInfo.get(),
       },
       credentials: 'include',
       observe: 'response',

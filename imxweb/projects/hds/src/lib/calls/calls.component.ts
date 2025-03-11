@@ -37,7 +37,9 @@ import {
   LdsReplacePipe,
   HelpContextualComponent,
   HelpContextualService,
-  HELP_CONTEXTUAL, BusyService } from 'qbm';
+  HELP_CONTEXTUAL,
+  BusyService,
+} from 'qbm';
 import { CollectionLoadParameters, EntitySchema, FilterData, IClientProperty, ValType, DataModel } from 'imx-qbm-dbts';
 
 @Component({
@@ -95,7 +97,7 @@ export class CallsComponent implements OnInit {
         },
       ];
       await this.setFilter();
-      await this.loadTickets();
+      await this.loadTickets(true);
     } finally {
       isBusy.endBusy();
     }
@@ -122,16 +124,15 @@ export class CallsComponent implements OnInit {
         width: 'max(600px, 60%)',
         data: sidesheetData,
         disableClose: true,
-        headerComponent: isNew ? HelpContextualComponent : undefined
+        headerComponent: isNew ? HelpContextualComponent : undefined,
       };
 
-      if (!isNew){
-
+      if (!isNew) {
         euiSidesheetConfig.subTitle = this.replacePipe.transform(
           await this.translate.get('#LDS#Heading Ticket Number: {0}').toPromise(),
           ticket.CallNumber.value.toString()
-          );
-          this.helpContextualService.setHelpContextId(HELP_CONTEXTUAL.HelpDeskSupportTicketsCreate);
+        );
+        this.helpContextualService.setHelpContextId(HELP_CONTEXTUAL.HelpDeskSupportTicketsCreate);
       }
       let sidesheetRef = this.sidesheet.open(CallsSidesheetComponent, euiSidesheetConfig);
       sidesheetRef.afterClosed().subscribe(() => this.loadTickets());
@@ -150,10 +151,12 @@ export class CallsComponent implements OnInit {
     }
   }
 
-  private async loadTickets(): Promise<void> {
+  private async loadTickets(isInitialLoad: boolean = false): Promise<void> {
     const isBusy = this.busyService.beginBusy();
     try {
-      let tickets = await this.hdsApiService.typedClient.PortalCalls.Get(this.collectionLoadParameters);
+      let tickets = isInitialLoad
+        ? { totalCount: 0, Data: [] }
+        : await this.hdsApiService.typedClient.PortalCalls.Get(this.collectionLoadParameters);
       this.dstSettings = {
         displayedColumns: this.displayedColumns,
         dataSource: tickets,

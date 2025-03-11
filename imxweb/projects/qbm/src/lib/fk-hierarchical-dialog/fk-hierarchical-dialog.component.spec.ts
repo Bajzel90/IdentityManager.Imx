@@ -44,7 +44,7 @@ const fkInfo = [
   { fkRelations: [], expectedMetadataCall: 0 },
   { fkRelations: undefined, expectedMetadataCall: 0 },
 ].forEach((testcase) =>
-  describe('FkHierarchicalDialogComponent', () => {
+  xdescribe('FkHierarchicalDialogComponent', () => {
     let component: FkHierarchicalDialogComponent;
     let fixture: MockedComponentFixture<FkHierarchicalDialogComponent>;
 

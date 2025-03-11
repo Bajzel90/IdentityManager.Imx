@@ -24,22 +24,22 @@
  *
  */
 
-import { Injectable, ErrorHandler } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router, CanDeactivate } from '@angular/router';
+import { ErrorHandler, Injectable } from '@angular/core';
+import { ActivatedRouteSnapshot, CanActivate, CanDeactivate, Router, RouterStateSnapshot } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 
-import { imx_SessionService } from '../session/imx-session.service';
 import { AppConfigService } from '../appConfig/appConfig.service';
-import { ComponentCanDeactivate } from './component-can-deactivate.interface';
+import { AuthenticationService } from '../authentication/authentication.service';
 import { OAuthService } from '../authentication/oauth.service';
 import { QueryParametersHandler } from '../base/query-parameters-handler';
 import { ClassloggerService } from '../classlogger/classlogger.service';
-import { AuthenticationService } from '../authentication/authentication.service';
-import { StorageService } from '../storage/storage.service';
 import { ConfirmationService } from '../confirmation/confirmation.service';
+import { imx_SessionService } from '../session/imx-session.service';
+import { StorageService } from '../storage/storage.service';
+import { ComponentCanDeactivate } from './component-can-deactivate.interface';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class RouteGuardService implements CanActivate, CanDeactivate<ComponentCanDeactivate> {
   private confirmLeaveTitle = '';
@@ -59,13 +59,13 @@ export class RouteGuardService implements CanActivate, CanDeactivate<ComponentCa
     private readonly storage: StorageService,
     readonly translation: TranslateService
   ) {
-    translation.get('#LDS#Heading Cancel Editing')
-      .subscribe((value: string) => this.confirmLeaveTitle = value);
+    translation.get('#LDS#Heading Cancel Editing').subscribe((value: string) => (this.confirmLeaveTitle = value));
 
-    translation.get('#LDS#You have unsaved changes. Are you sure you want to cancel editing and discard your changes?')
-      .subscribe((value: string) => this.confirmLeaveMessage = value);
+    translation
+      .get('#LDS#You have unsaved changes. Are you sure you want to cancel editing and discard your changes?')
+      .subscribe((value: string) => (this.confirmLeaveMessage = value));
 
-    this.authentication.onSessionResponse.subscribe(sessionState => this.isLoggedIn = sessionState && sessionState.IsLoggedIn);
+    this.authentication.onSessionResponse.subscribe((sessionState) => (this.isLoggedIn = sessionState && sessionState.IsLoggedIn));
   }
 
   public async canActivate(route: ActivatedRouteSnapshot, state?: RouterStateSnapshot): Promise<boolean> {
@@ -114,10 +114,13 @@ export class RouteGuardService implements CanActivate, CanDeactivate<ComponentCa
     }
 
     const lastUrl = this.storage.lastUrl;
-    const lastLocation = (this.lastRoute || lastUrl) ? {
-      route: this.lastRoute,
-      url: lastUrl
-    } : undefined;
+    const lastLocation =
+      this.lastRoute || lastUrl
+        ? {
+            route: this.lastRoute,
+            url: lastUrl,
+          }
+        : undefined;
 
     this.lastRoute = undefined;
     this.storage.lastUrl = undefined;
@@ -131,13 +134,11 @@ export class RouteGuardService implements CanActivate, CanDeactivate<ComponentCa
         queryParamsHandler = new QueryParametersHandler(undefined, lastLocation.route, lastLocation.url);
       }
 
-      if (paramsContainsOAuth && this.oauthService.hasRequiredOAuthParameter(oAuthQueryParams) || lastLocation) {
+      if ((paramsContainsOAuth && this.oauthService.hasRequiredOAuthParameter(oAuthQueryParams)) || lastLocation) {
         this.logger.debug(this, 'resolve - navigate - queryParamsHandler', queryParamsHandler);
-
-        this.router.navigate(
-          [queryParamsHandler.path || this.config.Config.routeConfig.start],
-          { queryParams: queryParamsHandler.GetQueryParameters(name => !this.oauthService.IsOAuthParameter(name)) }
-        );
+        let navigationUrl = this.router.parseUrl(queryParamsHandler.path || this.config.Config.routeConfig.start);
+        navigationUrl.queryParams = queryParamsHandler.GetQueryParameters((name) => !this.oauthService.IsOAuthParameter(name)) || {};
+        this.router.navigateByUrl(navigationUrl);
       }
     } catch (error) {
       this.errorHandler.handleError(error);

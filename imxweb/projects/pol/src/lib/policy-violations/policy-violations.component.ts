@@ -142,7 +142,7 @@ export class PolicyViolationsComponent implements OnInit {
     } finally {
       isBusy.endBusy();
     }
-    return this.getData(undefined, true);
+    return this.getData(undefined);
   }
 
   public async viewDetails(selectedPolicyViolation: PolicyViolation): Promise<void> {
@@ -208,7 +208,7 @@ export class PolicyViolationsComponent implements OnInit {
     }
   }
 
-  public async getData(newState?: CollectionLoadParameters, isInitialLoad: boolean = false): Promise<void> {
+  public async getData(newState?: CollectionLoadParameters): Promise<void> {
     if (newState) {
       this.navigationState = newState;
     }
@@ -221,9 +221,7 @@ export class PolicyViolationsComponent implements OnInit {
         this.navigationState.uid_qerpolicy = selectedCompanyPolicyKey;
         this.filterOptions = this.filterOptions.filter((filter) => filter.Name !== 'uid_qerpolicy');
       }
-      const dataSource = isInitialLoad
-        ? { totalCount: 0, Data: [] }
-        : await this.policyViolationsService.get(this.approveOnly, this.navigationState);
+      const dataSource = await this.policyViolationsService.get(this.approveOnly, this.navigationState);
       if (dataSource) {
         const exportMethod = this.policyViolationsService.exportPolicyViolations(this.navigationState);
         exportMethod.initialColumns = this.displayedColumns.map((col) => col.ColumnName);

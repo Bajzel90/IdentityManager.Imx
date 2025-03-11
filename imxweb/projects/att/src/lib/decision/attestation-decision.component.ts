@@ -216,7 +216,7 @@ export class AttestationDecisionComponent implements OnInit, OnDestroy {
       await this.initDataModel(true);
 
       await this.parseParams();
-      await this.getData(undefined, true);
+      await this.getData(undefined);
       this.handleDecision();
     } finally {
       setTimeout(() => {
@@ -298,7 +298,7 @@ export class AttestationDecisionComponent implements OnInit, OnDestroy {
     return this.getData({ ...this.navigationState, ...{ search } });
   }
 
-  public async getData(newState?: CollectionLoadParameters, isInitialLoad: boolean = false): Promise<void> {
+  public async getData(newState?: CollectionLoadParameters): Promise<void> {
     if (newState) {
       this.navigationState = newState;
     }

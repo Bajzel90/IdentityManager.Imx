@@ -135,8 +135,11 @@ export class RequestHistoryService {
   //   }
   // }
 
-  public async getFilterOptions(userUid: string, filterPresets: { [name: string]: string } = {}): Promise<DataSourceToolbarFilter[]> {
-    return (await this.getDataModel(userUid)).Filters.map((option: DataSourceToolbarFilter) => {
+  public async getFilterOptions(userUid: string, filterPresets: { [name: string]: string } = {}, dataModel?: DataModel ): Promise<DataSourceToolbarFilter[]> {
+    if (!dataModel) {
+      dataModel = await this.getDataModel(userUid);
+    }
+    return dataModel.Filters.map((option: DataSourceToolbarFilter) => {
       option.InitialValue = filterPresets[option.Name];
       return option;
     });

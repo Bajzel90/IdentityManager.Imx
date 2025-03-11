@@ -126,7 +126,7 @@ export class ItshopPatternComponent implements OnInit, OnDestroy {
     } finally {
       isBusy.endBusy();
     }
-    await this.getData(undefined, true);
+    await this.getData(undefined);
   }
 
   public ngOnDestroy(): void {
@@ -172,7 +172,7 @@ export class ItshopPatternComponent implements OnInit, OnDestroy {
     }
   }
 
-  public async getData(parameter?: CollectionLoadParameters, isInitialLoad: boolean = false): Promise<void> {
+  public async getData(parameter?: CollectionLoadParameters): Promise<void> {
     const isBusy = this.busyService.beginBusy();
     try {
       const parameters = {
@@ -181,8 +181,7 @@ export class ItshopPatternComponent implements OnInit, OnDestroy {
       };
       const dstSettings = await this.dstWrapper.getDstSettings(
         parameters,
-        { signal: this.patternService.abortController.signal },
-        isInitialLoad
+        { signal: this.patternService.abortController.signal }
       );
       if (dstSettings) {
         this.dstSettings = dstSettings;

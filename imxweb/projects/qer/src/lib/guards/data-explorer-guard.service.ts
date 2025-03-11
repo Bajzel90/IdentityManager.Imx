@@ -25,10 +25,10 @@
  */
 
 import { Injectable, OnDestroy } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
-import { Observable, Subscription } from 'rxjs';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
+import { Subscription } from 'rxjs';
 
-import { AppConfigService, AuthenticationService, ISessionState, SystemInfoService } from 'qbm';
+import { AppConfigService, AuthenticationService, RouteGuardService, SystemInfoService } from 'qbm';
 import { QerPermissionsService } from '../admin/qer-permissions.service';
 
 @Injectable({
@@ -42,41 +42,39 @@ export class DataExplorerGuardService implements CanActivate, OnDestroy {
     private readonly authentication: AuthenticationService,
     private readonly appConfig: AppConfigService,
     private readonly router: Router,
-    private readonly systemInfoService: SystemInfoService
+    private readonly systemInfoService: SystemInfoService,
+    private readonly routeGuardService: RouteGuardService
   ) {}
 
-  public canActivate(): Observable<boolean> {
-    return new Observable<boolean>((observer) => {
-      this.onSessionResponse = this.authentication.onSessionResponse.subscribe(async (sessionState: ISessionState) => {
-        if (sessionState.IsLoggedIn) {
-          const userIsAdmin = await this.qerPermissionService.isPersonAdmin();
-          const userIsAuditor = await this.qerPermissionService.isAuditor();
-          const userIsResourceAdmin = await this.qerPermissionService.isResourceAdmin();
-          const userIsRoleAdmin = await this.qerPermissionService.isRoleAdmin();
-          const userIsRoleStatistics = await this.qerPermissionService.isRoleStatistics();
-          const userIsStructStatistics = await this.qerPermissionService.isStructStatistics();
-          const userIsStructAdmin = await this.qerPermissionService.isStructAdmin();
-          const userIsTsbNameSpaceAdminBase = await this.qerPermissionService.isTsbNameSpaceAdminBase();
-          const systemInfo = await this.systemInfoService.get();
-          const isItShop = systemInfo.PreProps.includes('ITSHOP');
-          const isActive =
-            (isItShop && (userIsAdmin || userIsAuditor)) ||
-            userIsResourceAdmin ||
-            userIsAuditor ||
-            userIsRoleAdmin ||
-            userIsRoleStatistics ||
-            userIsStructStatistics ||
-            userIsStructAdmin ||
-            (isItShop && userIsTsbNameSpaceAdminBase);
+  public async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
+    if (await this.routeGuardService.canActivate(route, state)) {
+      const userIsAdmin = await this.qerPermissionService.isPersonAdmin();
+      const userIsAuditor = await this.qerPermissionService.isAuditor();
+      const userIsResourceAdmin = await this.qerPermissionService.isResourceAdmin();
+      const userIsRoleAdmin = await this.qerPermissionService.isRoleAdmin();
+      const userIsRoleStatistics = await this.qerPermissionService.isRoleStatistics();
+      const userIsStructStatistics = await this.qerPermissionService.isStructStatistics();
+      const userIsStructAdmin = await this.qerPermissionService.isStructAdmin();
+      const userIsTsbNameSpaceAdminBase = await this.qerPermissionService.isTsbNameSpaceAdminBase();
+      const systemInfo = await this.systemInfoService.get();
+      const isItShop = systemInfo.PreProps.includes('ITSHOP');
+      const isActive =
+        (isItShop && (userIsAdmin || userIsAuditor)) ||
+        userIsResourceAdmin ||
+        userIsAuditor ||
+        userIsRoleAdmin ||
+        userIsRoleStatistics ||
+        userIsStructStatistics ||
+        userIsStructAdmin ||
+        (isItShop && userIsTsbNameSpaceAdminBase);
 
-          if (!isActive) {
-            this.router.navigate([this.appConfig.Config.routeConfig.start], { queryParams: {} });
-          }
-          observer.next(isActive);
-          observer.complete();
-        }
-      });
-    });
+      if (!isActive) {
+        this.router.navigate([this.appConfig.Config.routeConfig.start], { queryParams: {} });
+      }
+      return isActive;
+    }
+    this.router.navigate([this.appConfig.Config.routeConfig.login]);
+    return false;
   }
 
   public ngOnDestroy(): void {

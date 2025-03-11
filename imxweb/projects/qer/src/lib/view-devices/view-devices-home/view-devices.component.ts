@@ -158,9 +158,9 @@ export class ViewDevicesComponent implements OnInit, OnDestroy, SideNavigationCo
   public async getData(newState?: CollectionLoadParameters, isInitialLoad: boolean = false): Promise<void> {
     const isbusy = this.busyService.beginBusy();
     try {
-      this.dstSettings = await this.dstWrapper.getDstSettings(newState, undefined, isInitialLoad);
+      this.dstSettings = await this.dstWrapper.getDstSettings(newState, undefined);
 
-      const dstSettingsHardwareType = await this.dstWrapperHardwareType.getDstSettings(newState, undefined, isInitialLoad);
+      const dstSettingsHardwareType = await this.dstWrapperHardwareType.getDstSettings(newState, undefined);
       if (dstSettingsHardwareType) {
         this.dstSettingsHardwareType = dstSettingsHardwareType;
         this.deviceModelValueStruct = this.dstSettingsHardwareType.dataSource.Data.map((d) => {

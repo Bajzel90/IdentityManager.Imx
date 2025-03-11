@@ -33,11 +33,11 @@ import { ViewConfigData } from 'imx-api-qer';
 import { CollectionLoadParameters, DataModel, DisplayColumns, EntitySchema, IClientProperty, TypedEntity, XOrigin } from 'imx-qbm-dbts';
 import {
   AuthenticationService,
-  buildAdditionalElementsString,
   DataSourceToolbarSettings,
   DataSourceToolbarViewConfig,
   ISessionState,
   SnackBarService,
+  buildAdditionalElementsString,
 } from 'qbm';
 import { UserModelService } from '../../user/user-model.service';
 import { ViewConfigService } from '../../view-config/view-config.service';
@@ -89,7 +89,7 @@ export class MembershipsChooseIdentitiesComponent implements OnInit {
     try {
       this.dataModel = await this.roleService.getCandidatesDataModel(this.dataManagementService.entityInteractive.GetEntity().GetKeys()[0]);
       this.viewConfig = await this.viewConfigService.getInitialDSTExtension(this.dataModel, this.viewConfigPath);
-      this.candidatesEntitySchema = this.roleService.getMembershipEntitySchema('candidates');
+      this.candidatesEntitySchema = this.roleService.getMembershipEntitySchema();
     } finally {
       setTimeout(() => this.busyService.hide(overlayRef));
     }
@@ -178,8 +178,9 @@ export class MembershipsChooseIdentitiesComponent implements OnInit {
           ? { totalCount: 0, Data: [] }
           : await this.roleService.getCandidates(this.dataManagementService.entityInteractive.GetEntity().GetKeys().join(','), {
               ...this.navigationState,
+          // TODO: #458415 The api cannot handle this nav param anymore. Needs to be fixed.
               // exclude candidate identities that already have an assignment request (XOrigin.Ordered)
-              xorigin: XOrigin.Ordered,
+              // xorigin: XOrigin.Ordered,
             }),
         entitySchema: this.candidatesEntitySchema,
         navigationState: this.navigationState,

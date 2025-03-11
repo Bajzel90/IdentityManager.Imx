@@ -498,6 +498,10 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
       this.applyDynamicPropsAsSelectedFilters(config);
     }
 
+    if (!config && this.selectedFilters?.length === 0) {
+      emitNavigationStateChanged = false;
+    }
+
     this.updateNavigateStateWithFilters(emitNavigationStateChanged);
   }
 
@@ -506,12 +510,21 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
    * @param config the DSTViewConfig
    */
   public applyGroupBy(config: DSTViewConfig): void {
-    const group = this.settings?.groupData?.groups?.find(
+    // search in the flat list of groups for the group from the config
+    let group = this.settings?.groupData?.groups?.find(
       (group) => this.getGroupColumnDisplay(group) === config.GroupBy || group.property.Property.ColumnName === config.GroupBy
     );
     if (group) {
       this.onGroupSelected(group, undefined, true);
     }
+
+    // search in the list of grouping categories and their groups for the group from the config
+    this.settings?.groupData?.groupingCategories?.find((category) => {
+      group = category.groups.find((group) => group.property.Value === config.GroupBy);
+      if (group?.property?.Value?.length > 0) {
+        this.onGroupSelected(group, category, true);
+      }
+    });
   }
 
   /**
@@ -570,9 +583,7 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
       ViewId: this.settings.viewConfig.viewId,
       DisplayName: displayName,
       Filter: this.settings?.navigationState?.filter,
-      GroupBy: this.settings?.groupData?.groups?.find(
-        (group) => group.property.Property.Display === this.settings?.groupData?.currentGrouping?.display
-      )?.property.Property.ColumnName,
+      GroupBy: this.getGroupBy(),
       OrderBy: this.settings?.navigationState?.OrderBy,
       AdditionalListColumns: this.columnOptions?.additionalListElements?.map((ele) => ele.ColumnName),
       AdditionalTableColumns: this.columnOptions?.selectedOptionals
@@ -1402,6 +1413,27 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
     if (reload && (!this.groupingCurrentlyApplied || this.settings.groupData.isExpanded)) {
       this.navigationStateChanged.next(this.settings.navigationState);
     }
+  }
+
+  private getGroupBy(): string {
+    if (!this.settings?.groupData?.currentGrouping) {
+      return undefined;
+    }
+    const currentGroupingDisplay = this.settings?.groupData?.currentGrouping?.display;
+
+    // search in the flat list of groups for the group
+    let group = this.settings?.groupData?.groups?.find((group) => group.property.Property.Display === currentGroupingDisplay);
+    if (group?.property?.Property?.ColumnName?.length > 0) {
+      return group?.property?.Property?.ColumnName;
+    }
+
+    // search in the list of grouping categories and their groups for the group
+    const separatorIndex = currentGroupingDisplay.indexOf('\u2063');
+    const categoryDisplay = currentGroupingDisplay.substring(0, separatorIndex - 1);
+    const groupDisplay = currentGroupingDisplay.substring(separatorIndex + 4);
+    const groupCategory = this.settings?.groupData?.groupingCategories?.find((category) => category.property.Display === categoryDisplay);
+    group = groupCategory?.groups?.find((group) => group.property.Display === groupDisplay);
+    return group?.property?.Value;
   }
 
   /**

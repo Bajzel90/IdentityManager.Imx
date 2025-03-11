@@ -118,7 +118,7 @@ export class ResourcesComponent implements OnInit, SideNavigationComponent {
     } finally {
       isBusy.endBusy();
     }
-    await this.navigate(true);
+    await this.navigate();
   }
 
   public async onNavigationStateChanged(newState?: CollectionLoadParameters): Promise<void> {
@@ -180,15 +180,13 @@ export class ResourcesComponent implements OnInit, SideNavigationComponent {
     });
   }
 
-  private async navigate(isInitialLoad: boolean = false): Promise<void> {
+  private async navigate(): Promise<void> {
     const isBusy = this.busyService.beginBusy();
     const exportMethod = this.resourceProvider.getExportMethod(this.tablename, this.isAdmin, this.navigationState);
     exportMethod.initialColumns = this.displayColumns.map((col) => col.ColumnName);
     try {
       this.dstSettings = {
-        dataSource: isInitialLoad
-          ? { totalCount: 0, Data: [] }
-          : await this.resourceProvider.get(this.tablename, this.isAdmin, this.navigationState),
+        dataSource: await this.resourceProvider.get(this.tablename, this.isAdmin, this.navigationState),
         entitySchema: this.entitySchema,
         navigationState: this.navigationState,
         displayedColumns: this.displayColumns,

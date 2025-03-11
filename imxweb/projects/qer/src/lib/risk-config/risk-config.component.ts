@@ -91,13 +91,13 @@ export class RiskConfigComponent implements OnInit {
       isBusy.endBusy();
     }
 
-    await this.getData(undefined, true);
+    await this.getData(undefined);
   }
 
-  public async getData(newState?: CollectionLoadParameters, isInitialLoad: boolean = false): Promise<void> {
+  public async getData(newState?: CollectionLoadParameters): Promise<void> {
     const isBusy = this.busyService.beginBusy();
     try {
-      this.dstSettings = await this.dstWrapper.getDstSettings(newState, undefined, isInitialLoad);
+      this.dstSettings = await this.dstWrapper.getDstSettings(newState, undefined);
     } finally {
       isBusy.endBusy();
     }

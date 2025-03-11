@@ -25,9 +25,9 @@
  */
 
 import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 
-import { AppConfigService } from 'qbm';
+import { AppConfigService, RouteGuardService } from 'qbm';
 import { PermissionsService } from '../admin/permissions.service';
 
 @Injectable({
@@ -37,15 +37,20 @@ export class AttestationPoliciesGuardService implements CanActivate {
   constructor(
     private readonly permissionService: PermissionsService,
     private readonly appConfig: AppConfigService,
-    private readonly router: Router
-  ) { }
+    private readonly router: Router,
+    private readonly routeGuardService: RouteGuardService
+  ) {}
 
-  public async canActivate(): Promise<boolean> {
-    const userCanSeeAttestationPolicies = await this.permissionService.canSeeAttestationPolicies();
-    if (!userCanSeeAttestationPolicies) {
-      this.router.navigate([this.appConfig.Config.routeConfig.start], { queryParams: {} });
-      return false;
+  public async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
+    if (await this.routeGuardService.canActivate(route, state)) {
+      const userCanSeeAttestationPolicies = await this.permissionService.canSeeAttestationPolicies();
+      if (userCanSeeAttestationPolicies) {
+        return userCanSeeAttestationPolicies;
+      }
+      this.router.navigate([this.appConfig.Config.routeConfig.start]);
+    } else {
+      this.router.navigate([this.appConfig.Config.routeConfig.login]);
     }
-    return userCanSeeAttestationPolicies;
+    return false;
   }
 }

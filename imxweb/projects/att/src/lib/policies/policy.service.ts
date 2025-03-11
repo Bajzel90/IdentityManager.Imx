@@ -56,6 +56,7 @@ import { ApiService } from '../api.service';
 import { AttestationPolicy } from './policy-list/attestation-policy';
 import { PolicyLoadParameters } from './policy-list/policy-load-parameters.interface';
 import { PolicyCopyData } from './policy.interface';
+import { AttestationFeatureGuardService } from '../attestation-feature-guard.service';
 
 @Injectable({
   providedIn: 'root',
@@ -67,6 +68,7 @@ export class PolicyService {
 
   constructor(
     private api: ApiService,
+    private readonly attFeatureService: AttestationFeatureGuardService,
     private readonly elementalUiConfigService: ElementalUiConfigService,
     private readonly translator: TranslateService,
     private readonly config: AppConfigService,
@@ -212,7 +214,7 @@ export class PolicyService {
   }
 
   public async isComplienceFrameworkEnabled(): Promise<boolean> {
-    return (await this.api.client.portal_attestation_config_get()).EnableComplianceFrameworks;
+    return (await this.attFeatureService.getAttestationConfig()).EnableComplianceFrameworks;
   }
 
   public getReportDownloadOptions(key: string, display: string): EuiDownloadOptions {
@@ -224,7 +226,7 @@ export class PolicyService {
   }
 
   public async getCasesThreshold(): Promise<number> {
-    return (await this.api.client.portal_attestation_config_get()).PolicyObjectCountThreshold;
+    return (await this.attFeatureService.getAttestationConfig()).PolicyObjectCountThreshold;
   }
 
   public async getRunCountForPolicy(uid: string): Promise<number> {

@@ -25,37 +25,34 @@
  */
 
 import { Injectable, OnDestroy } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
-import { Observable, Subscription } from 'rxjs';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
+import { Subscription } from 'rxjs';
 
-import { AppConfigService, AuthenticationService, ISessionState } from 'qbm';
+import { AppConfigService, RouteGuardService } from 'qbm';
 import { QerPermissionsService } from '../admin/qer-permissions.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-export class RuleAdminGuardService implements CanActivate, OnDestroy{
+export class RuleAdminGuardService implements CanActivate, OnDestroy {
   private onSessionResponse: Subscription;
   constructor(
     private readonly qerPermissionService: QerPermissionsService,
-    private readonly authentication: AuthenticationService,
     private readonly appConfig: AppConfigService,
-    private readonly router: Router
-  ) { }
+    private readonly router: Router,
+    private readonly routeGuardService: RouteGuardService
+  ) {}
 
-  public canActivate(): Observable<boolean> {
-    return new Observable<boolean>((observer) => {
-      this.onSessionResponse = this.authentication.onSessionResponse.subscribe(async (sessionState: ISessionState) => {
-        if (sessionState.IsLoggedIn) {
-          const userIsRuleAdmin = await this.qerPermissionService.isRuleAdmin();
-          if (!userIsRuleAdmin) {
-            this.router.navigate([this.appConfig.Config.routeConfig.start], { queryParams: {} });
-          }
-          observer.next(userIsRuleAdmin);
-          observer.complete();
-        }
-      });
-    });
+  public async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
+    if (await this.routeGuardService.canActivate(route, state)) {
+      const userIsRuleAdmin = await this.qerPermissionService.isRuleAdmin();
+      if (!userIsRuleAdmin) {
+        this.router.navigate([this.appConfig.Config.routeConfig.start], { queryParams: {} });
+      }
+      return userIsRuleAdmin;
+    }
+    this.router.navigate([this.appConfig.Config.routeConfig.login]);
+    return false;
   }
 
   public ngOnDestroy(): void {

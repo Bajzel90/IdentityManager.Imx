@@ -75,6 +75,7 @@ export class EditDateComponent implements CdrEditor, OnDestroy {
 
   private readonly subscribers: Subscription[] = [];
   private isWriting = false;
+  private previousValue: Moment | undefined;
   /**
    * We need to track error states incase external validation scripts are erroring on the current value.
    * i.e original value is now invalid as too much time has passed while being in the shopping cart
@@ -151,6 +152,14 @@ export class EditDateComponent implements CdrEditor, OnDestroy {
     }
   }
 
+
+  /**
+   * Resets the counted errors to 0.
+   */
+  public resetErrorCount(): void{
+    this.errorCount=0;
+  }
+
   /**
    * Sets Validators.required, if the control is mandatory, else it's set to null.
    * @ignore used internally
@@ -179,12 +188,13 @@ export class EditDateComponent implements CdrEditor, OnDestroy {
    * @param value The Moment object, that is used as the new value for the control.
    */
   private async writeValue(value: Moment): Promise<void> {
-    if (this.control.errors) {
+    if (this.control.errors || value?.isSame(this.previousValue)) {
       return;
     }
+    this.previousValue = value;
     const date = value == null ? undefined : value.toDate();
-    const resetDate = new Date(this.columnContainer.value);
-    const resetMoment = moment(resetDate);
+    const resetDate = this.columnContainer. value ? new Date(this.columnContainer.value) : undefined;
+    const resetMoment =resetDate ? moment(resetDate) : undefined;
 
     if (!this.columnContainer.canEdit || (value && value.isSame(this.columnContainer.value)) || (!value && !this.columnContainer.value)) {
       // if the value is the same, we don't need to update the value

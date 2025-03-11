@@ -57,13 +57,13 @@ import {
   WriteExtTypedEntity,
   XOrigin,
 } from 'imx-qbm-dbts';
-import { AERoleMembership, DepartmentMembership, LocalityMembership, ProfitCenterMembership } from './role-memberships/membership-handlers';
 import { ProjectConfigurationService } from '../project-configuration/project-configuration.service';
 import { QerApiService } from '../qer-api-client.service';
-import { RoleObjectInfo, RoleTranslateKeys } from './role-object-info';
-import { DataSourceToolbarExportMethod, DynamicMethodService, ImxTranslationProviderService, imx_SessionService } from 'qbm';
-import { BaseTreeEntitlement } from './role-entitlements/entitlement-handlers';
 import { BaseTreeRoleRestoreHandler } from './restore/restore-handler';
+import { BaseTreeEntitlement } from './role-entitlements/entitlement-handlers';
+import { AERoleMembership, DepartmentMembership, LocalityMembership, ProfitCenterMembership } from './role-memberships/membership-handlers';
+import { RoleObjectInfo, RoleTranslateKeys } from './role-object-info';
+import { DataSourceToolbarExportMethod, DynamicMethodService, imx_SessionService, ImxTranslationProviderService } from 'qbm';
 
 export const RoleManagementLocalityTag = 'Locality';
 export const RoleManagementProfitCenterTag = 'ProfitCenter';
@@ -251,7 +251,7 @@ export class RoleService {
     );
 
     // Role Membership Objects
-    this.targetMap.get(this.LocalityTag).membership = new LocalityMembership(this.api, session, this.translator);
+    this.targetMap.get(this.LocalityTag).membership = new LocalityMembership(this.api, this.session, this.translator);
     this.targetMap.get(this.ProfitCenterTag).membership = new ProfitCenterMembership(this.api, this.session, this.translator);
     this.targetMap.get(this.DepartmentTag).membership = new DepartmentMembership(this.api, this.session, this.translator);
     this.targetMap.get(this.AERoleTag).membership = new AERoleMembership(this.api, this.session, this.translator);
@@ -482,9 +482,8 @@ export class RoleService {
     return isAdmin ? this.targetMap.get(tableName).interactiveAdmin.GetSchema() : this.targetMap.get(tableName).interactiveResp.GetSchema();
   }
 
-  public getMembershipEntitySchema(key: string): EntitySchema {
-    const membership = this.targetMap.get(this.ownershipInfo.TableName).membership;
-    return membership.getSchema(key);
+  public getMembershipEntitySchema(): EntitySchema {
+    return this.targetMap.get(this.ownershipInfo.TableName).membership.GetSchema();
   }
 
   public async getDataModel(tableName: string, isAdmin: boolean): Promise<DataModel> {
@@ -493,9 +492,10 @@ export class RoleService {
   }
 
   public canCreate(tableName: string, isAdmin: boolean, userCanCreateAeRole: boolean): boolean {
-    if (tableName === this.AERoleTag && !userCanCreateAeRole) { // special case, that the user can't create application roles at all
+    if (tableName === this.AERoleTag && !userCanCreateAeRole) {
+      // special case, that the user can't create application roles at all
       return false;
-    } 
+    }
 
     return isAdmin ? this.targetMap.get(tableName)?.adminCanCreate : this.targetMap.get(tableName).respCanCreate;
   }
@@ -656,7 +656,7 @@ export class RoleService {
   }
 
   public getEntitlementFkName(): string {
-    return this.targetMap.get(this.ownershipInfo.TableName).entitlements.getEntitlementFkName();
+    return this.targetMap.get(this.ownershipInfo.TableName).entitlements.entitlementFkName;
   }
 
   private async getEntities(tableName: string, navigationState: CollectionLoadParameters): Promise<TypedEntityCollectionData<TypedEntity>> {
