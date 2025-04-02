@@ -351,7 +351,7 @@ export class NewRequestProductComponent implements OnInit, OnDestroy {
           firstIteration = false;
         } else {
           this.dynamicDataSource.setup(true);
-          //await this.getProductData(true);
+          await this.getProductData(true);
         }
       })
     );
