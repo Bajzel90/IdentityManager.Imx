@@ -56,7 +56,7 @@ export class DecisionStepSevice {
       });
 
       //Sort steps and get step with lowest sub level
-    const step = stepsWithSubLevel.sort((x, y) => x.subLevel - y.subLevel)[0].column;
+    const step = stepsWithSubLevel?.sort((x, y) => x.subLevel - y.subLevel)?.[0]?.column;
 
     return step?.Columns.Ident_PWODecisionStep == null
       ? null
@@ -72,7 +72,7 @@ export class DecisionStepSevice {
       (elem) =>
         elem?.Columns?.UID_QERWorkingStep.Value === step?.Columns?.UID_QERWorkingStep.Value &&
         elem?.Columns?.UID_PersonHead.Value === this.uidUser &&
-        (elem?.Columns?.Decision.Value ?? '') === ''
+        (elem?.Columns?.Decision?.Value ?? '') === ''
     );
   }
 }

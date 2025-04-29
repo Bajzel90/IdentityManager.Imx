@@ -62,7 +62,7 @@ const routes: Routes = [
   {
     path: 'archivedrequest',
     component: ArchivedRequestsComponent,
-    canActivate: [RouteGuardService, RequestsFeatureGuardService],
+    canActivate: [RequestsFeatureGuardService],
     resolve: [RouteGuardService],
     data:{
       contextId: HELP_CONTEXTUAL.ArchivedRequest

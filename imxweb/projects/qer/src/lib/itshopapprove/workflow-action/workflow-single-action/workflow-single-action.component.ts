@@ -123,9 +123,12 @@ export class WorkflowSingleActionComponent implements OnInit {
       try {
         const entityWrapper = await this.approvalService.getExtendedEntity(this.request.key);
         const interactiveColumns = entityWrapper.parameterCategoryColumns.map((item) => item.column);
-        interactiveColumns.forEach((pCol) =>
-          this.requestParameterColumns.push(this.data.approve ? new BaseCdr(pCol) : new BaseReadonlyCdr(pCol))
-        );
+        interactiveColumns.forEach((pCol) => {
+          pCol.ColumnChanged.subscribe(() => {
+            this.request.parameterColumns.find((elem) => elem.ColumnName === pCol.ColumnName)?.PutValue(pCol.GetValue());
+          });
+          this.requestParameterColumns.push(this.data.approve ? new BaseCdr(pCol) : new BaseReadonlyCdr(pCol));
+        });
       } finally {
         isBusy.endBusy();
       }
@@ -160,4 +163,5 @@ export class WorkflowSingleActionComponent implements OnInit {
       this.request.updateDirectDecisionTarget(entity);
     }
   }
+
 }

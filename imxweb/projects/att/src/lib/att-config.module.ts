@@ -98,7 +98,7 @@ const routes: Routes = [
   {
     path: 'claimdevice',
     component: ClaimDeviceComponent,
-    canActivate: [RouteGuardService, HardwareGuardService],
+    canActivate: [HardwareGuardService],
     resolve: [RouteGuardService],
     data: {
       contextId: HELP_CONTEXTUAL.ClaimDevice,

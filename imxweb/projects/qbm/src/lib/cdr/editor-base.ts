@@ -23,16 +23,16 @@
  * THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
-import { OnDestroy, Component, EventEmitter, ErrorHandler } from '@angular/core';
+import { Component, ErrorHandler, EventEmitter, OnDestroy } from '@angular/core';
 import { AbstractControl, ValidatorFn, Validators } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 
+import { ValType } from 'imx-qbm-dbts';
+import { ServerError } from '../base/server-error';
+import { ClassloggerService } from '../classlogger/classlogger.service';
 import { CdrEditor, ValueHasChangedEventArg } from './cdr-editor.interface';
 import { ColumnDependentReference } from './column-dependent-reference.interface';
-import { ClassloggerService } from '../classlogger/classlogger.service';
 import { EntityColumnContainer } from './entity-column-container';
-import { ServerError } from '../base/server-error';
-import { ValType } from 'imx-qbm-dbts';
 
 /**
  * A base class for CDR editors, that handles simple dataTypes like string, boolean or integer.
@@ -128,7 +128,7 @@ export abstract class EditorBase<T = any> implements CdrEditor, OnDestroy {
       // bind to entity change event
       this.subscribers.push(
         this.columnContainer.subscribe(() => {
-          if (this.isWriting) {
+          if (this.isWriting || (!!this.columnContainer.metaData && !this.columnContainer.metaData?.CanSee())) {
             return;
           }
 
@@ -150,12 +150,12 @@ export abstract class EditorBase<T = any> implements CdrEditor, OnDestroy {
           setTimeout(() => {
             try {
               if (!this.control.hasError('generalError') && this.control.value !== this.columnContainer.value) {
-                 this.logger.trace(
-                   this,
-                   `Control (${this.columnContainer.name}) set to new value:`,
-                   this.columnContainer.value,
-                   this.control.value
-                 );
+                this.logger.trace(
+                  this,
+                  `Control (${this.columnContainer.name}) set to new value:`,
+                  this.columnContainer.value,
+                  this.control.value
+                );
                 this.setControlValue();
                 this.control.updateValueAndValidity({ onlySelf: true, emitEvent: false });
               }

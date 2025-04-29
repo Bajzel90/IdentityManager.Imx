@@ -25,37 +25,35 @@
  */
 
 import { Injectable, OnDestroy } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
-import { AppConfigService, AuthenticationService, ISessionState } from 'qbm';
-import { Observable, Subscription } from 'rxjs';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
+import { AppConfigService, RouteGuardService } from 'qbm';
+import { Subscription } from 'rxjs';
 import { FeatureConfigService } from 'qer';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SystemStatusRouteGuardService implements CanActivate, OnDestroy {
   private onSessionResponse: Subscription;
 
   constructor(
-    private readonly authentication: AuthenticationService,
     private readonly appConfig: AppConfigService,
+    private readonly routeGuardService: RouteGuardService,
     private readonly router: Router,
     private readonly featureService: FeatureConfigService
-  ) { }
+  ) {}
 
-  public canActivate(): Observable<boolean> {
-    return new Observable<boolean>((observer) => {
-      this.onSessionResponse = this.authentication.onSessionResponse.subscribe(async (sessionState: ISessionState) => {
-        if (sessionState.IsLoggedIn) {
-          const conf = await this.featureService.getFeatureConfig();
-          if (!conf.EnableSystemStatus) {
-            this.router.navigate([this.appConfig.Config.routeConfig.start], { queryParams: {} });
-          }
-          observer.next(conf.EnableSystemStatus);
-          observer.complete();
-        }
-      });
-    });
+  public async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
+    if (await this.routeGuardService.canActivate(route, state)) {
+      const conf = await this.featureService.getFeatureConfig();
+      if (!conf.EnableSystemStatus) {
+        this.router.navigate([this.appConfig.Config.routeConfig.start]);
+      }
+      return conf.EnableSystemStatus;
+    }
+
+    this.router.navigate([this.appConfig.Config.routeConfig.login]);
+    return false;
   }
 
   public ngOnDestroy(): void {
@@ -64,4 +62,3 @@ export class SystemStatusRouteGuardService implements CanActivate, OnDestroy {
     }
   }
 }
-

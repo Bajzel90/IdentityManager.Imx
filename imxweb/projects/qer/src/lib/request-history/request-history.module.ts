@@ -68,7 +68,7 @@ const routes: Routes = [
   {
     path: 'requesthistory',
     component: RequestHistoryComponent,
-    canActivate: [RouteGuardService, RequestsFeatureGuardService],
+    canActivate: [RequestsFeatureGuardService],
     resolve: [RouteGuardService]
   }
 ];

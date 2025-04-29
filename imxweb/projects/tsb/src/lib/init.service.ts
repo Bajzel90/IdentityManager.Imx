@@ -26,44 +26,31 @@
 
 import { Injectable } from '@angular/core';
 import { Route, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 
+import { ProjectConfig } from 'imx-api-qbm';
 import { UnsConfig } from 'imx-api-tsb';
 import { CachedPromise } from 'imx-qbm-dbts';
-import {
-  AuthenticationService,
-  CacheService,
-  DynamicMethodService,
-  ExtService,
-  HELP_CONTEXTUAL,
-  ISessionState,
-  MenuService,
-  TabItem
-} from 'qbm';
+import { CacheService, DynamicMethodService, ExtService, HELP_CONTEXTUAL, MenuService, TabItem } from 'qbm';
 import {
   DataExplorerRegistryService,
   IRequestableEntitlementType,
   MyResponsibilitiesRegistryService,
-  QerPermissionsService,
   RequestableEntitlementType,
   RequestableEntitlementTypeService,
 } from 'qer';
 import { AccountsExtComponent } from './accounts/account-ext/accounts-ext.component';
 import { DataExplorerAccountsComponent } from './accounts/accounts.component';
 import { isTsbNameSpaceAdminBase } from './admin/tsb-permissions-helper';
+import { GroupMembershipsExtComponent } from './groups/group-memberships-ext/group-memberships-ext.component';
 import { DataExplorerGroupsComponent } from './groups/groups.component';
 import { ReportButtonExtComponent } from './report-button-ext/report-button-ext.component';
 import { TsbApiService } from './tsb-api-client.service';
-import { GroupMembershipsExtComponent } from './groups/group-memberships-ext/group-memberships-ext.component';
-import { ProjectConfig } from 'imx-api-qbm';
 
 @Injectable({ providedIn: 'root' })
 export class InitService {
   private cachedUnsConfig: CachedPromise<UnsConfig>;
-  private onSessionResponse: Subscription;
 
   constructor(
-    private readonly authentication: AuthenticationService,
     private readonly router: Router,
     private readonly dataExplorerRegistryService: DataExplorerRegistryService,
     private readonly entlTypeService: RequestableEntitlementTypeService,
@@ -72,30 +59,17 @@ export class InitService {
     private readonly menuService: MenuService,
     private readonly extService: ExtService,
     private readonly cacheService: CacheService,
-    private readonly myResponsibilitiesRegistryService: MyResponsibilitiesRegistryService,
-    private readonly permissions: QerPermissionsService
+    private readonly myResponsibilitiesRegistryService: MyResponsibilitiesRegistryService
   ) {}
-
-  public ngOnDestroy(): void {
-    if (this.onSessionResponse) {
-      this.onSessionResponse.unsubscribe();
-    }
-  }
 
   public async onInit(routes: Route[]): Promise<void> {
     this.cachedUnsConfig = this.cacheService.buildCache(() => this.tsbApiService.client.portal_uns_config_get());
 
-    this.onSessionResponse = this.authentication.onSessionResponse.subscribe(async (sessionState: ISessionState) => {
-      if (sessionState.IsLoggedIn) {
-        if(await this.permissions.isPersonManager()){
-          this.extService.register('identityReportsManager', {
-            instance: ReportButtonExtComponent,
-            inputData: {
-              caption: '#LDS#Download report on user accounts of identities you are directly responsible for'
-            }
-          });
-        }
-      }
+    this.extService.register('identityReportsManager', {
+      instance: ReportButtonExtComponent,
+      inputData: {
+        caption: '#LDS#Download report on user accounts of identities you are directly responsible for',
+      },
     });
     this.extService.register('identityAssignment', {
       instance: AccountsExtComponent,
@@ -107,16 +81,15 @@ export class InitService {
       sortOrder: 10,
     } as TabItem);
 
-     this.extService.register('identityAssignment', {
-       instance: GroupMembershipsExtComponent,
-       inputData: {
-         id: 'groups',
-         label: '#LDS#System entitlements',
-         checkVisibility: async (_) => true,
-       },
-       sortOrder: 10,
-     } as TabItem);
-
+    this.extService.register('identityAssignment', {
+      instance: GroupMembershipsExtComponent,
+      inputData: {
+        id: 'groups',
+        label: '#LDS#System entitlements',
+        checkVisibility: async (_) => true,
+      },
+      sortOrder: 10,
+    } as TabItem);
 
     this.addRoutes(routes);
     this.setupMenu();
@@ -146,7 +119,7 @@ export class InitService {
           name: 'groups',
           caption: '#LDS#System entitlements',
           icon: 'usergroup',
-          contextId: HELP_CONTEXTUAL.DataExplorerGroups
+          contextId: HELP_CONTEXTUAL.DataExplorerGroups,
         };
       }
     );
@@ -160,7 +133,7 @@ export class InitService {
       name: 'UNSGroup',
       caption: '#LDS#System entitlements',
       icon: 'usergroup',
-      contextId: HELP_CONTEXTUAL.MyResponsibilitiesGroups
+      contextId: HELP_CONTEXTUAL.MyResponsibilitiesGroups,
     }));
   }
 

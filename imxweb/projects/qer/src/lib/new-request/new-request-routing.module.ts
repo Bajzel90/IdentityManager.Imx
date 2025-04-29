@@ -38,7 +38,7 @@ const routes: Routes = [
   {
     path: 'newrequest',
     component: NewRequestComponent,
-    canActivate: [RouteGuardService, RequestsFeatureGuardService],
+    canActivate: [RequestsFeatureGuardService],
     resolve: [RouteGuardService],
     children: [
       {
