@@ -34,7 +34,7 @@ import { ItshopService } from '../itshop.service';
 import { RequestParameterDataEntity } from './request-parameter-data-entity.interface';
 import { WorkflowHistoryItemWrapper } from './workflow-history-item-wrapper';
 import { DecisionHistoryService } from '../decision-history.service';
-import { PortalShopServiceitems, QerProjectConfig } from 'imx-api-qer';
+import { PortalItshopApproveHistory, PortalShopServiceitems, PwoData, QerProjectConfig } from 'imx-api-qer';
 
 
 @Component({
@@ -104,7 +104,7 @@ export class RequestInfoComponent implements OnInit, OnDestroy {
 
       this.workflow = this.itshopService
         .createTypedHistory(this.request.pwoData)
-        .map((item) => new WorkflowHistoryItemWrapper(item, this.decisionHistory));
+        .map((item,index) => new WorkflowHistoryItemWrapper(item, this.decisionHistory,this.getComplianceRule(index, this.request.pwoData)));
 
       this.isRoleAssignment = ['ESet', 'QERAssign'].includes(this.request.TableName.value);
       if (!this.isRoleAssignment) {
@@ -124,5 +124,10 @@ export class RequestInfoComponent implements OnInit, OnDestroy {
 
   private isForView(cdr: ColumnDependentReference): boolean {
     return cdr.column.ColumnName !== 'PWOPriority' || cdr.column.GetValue() !== 0;
+  }
+
+  private getComplianceRule(index:number,pwoData: PwoData): string {
+    const elem = pwoData.WorkflowHistory.Entities[index].Columns['UID_ComplianceRule'];
+    return elem?.DisplayValue ?? '';
   }
 }

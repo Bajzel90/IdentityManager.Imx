@@ -33,7 +33,7 @@ export class WorkflowHistoryItemWrapper {
   public readonly approver: ColumnDependentReference;
   public readonly columns: ColumnDependentReference[];
 
-  constructor(public readonly approveHistory: PortalItshopApproveHistory, public readonly decisionHistory: DecisionHistoryService) {
+  constructor(public readonly approveHistory: PortalItshopApproveHistory, public readonly decisionHistory: DecisionHistoryService,public readonly complianceRule?: string) {
     this.approver = this.createApproverCdr(this.approveHistory),
       this.columns = this.createCdrList(this.approveHistory);
   }

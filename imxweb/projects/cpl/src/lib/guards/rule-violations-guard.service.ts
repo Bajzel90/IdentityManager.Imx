@@ -25,9 +25,9 @@
  */
 
 import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 
-import { AppConfigService } from 'qbm';
+import { AppConfigService, RouteGuardService } from 'qbm';
 import { CplPermissionsService } from '../rules/admin/cpl-permissions.service';
 
 @Injectable({
@@ -35,17 +35,22 @@ import { CplPermissionsService } from '../rules/admin/cpl-permissions.service';
 })
 export class RuleViolationsGuardService implements CanActivate {
   constructor(
-    private readonly permissionService: CplPermissionsService,
+    private readonly permissionService: CplPermissionsService,    
     private readonly appConfig: AppConfigService,
+    private readonly routeGuardService: RouteGuardService,
     private readonly router: Router
-  ) { }
+  ) {}
 
-  public async canActivate(): Promise<boolean> {
-    const isExceptionAdmin = await this.permissionService.isExceptionAdmin();
-    if (!isExceptionAdmin) {
-      this.router.navigate([this.appConfig.Config.routeConfig.start], { queryParams: {} });
-      return false;
+  public async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
+    if (await this.routeGuardService.canActivate(route, state)) {
+      const isExceptionAdmin = await this.permissionService.isExceptionAdmin();
+      if (!isExceptionAdmin) {
+        this.router.navigate([this.appConfig.Config.routeConfig.start]);
+      }
+      return isExceptionAdmin;
     }
-    return isExceptionAdmin;
+
+    this.router.navigate([this.appConfig.Config.routeConfig.login]);
+    return false;
   }
 }

@@ -167,6 +167,20 @@ export class EditBitmaskComponent implements CdrEditor {
 
   private async initOptions(): Promise<void> {
     const bitMaskCaptions = this.columnContainer?.metaData?.GetBitMaskCaptions();
-    this.options = bitMaskCaptions?.map((elem, idx): EuiSelectOption => ({ display: elem, value: this.getBinaryNumber(idx) })) || [];
+    this.options =
+      bitMaskCaptions
+        ?.map((elem, idx): EuiSelectOption => ({ display: elem, value: this.getBinaryNumber(idx) }))
+        // afterwards reduce empty options (= deactivated bitmask captions)
+        .filter((option) => option.display.length > 0) || [];
+
+    // don't show deactivated options as selected
+    const newValues = [];
+    const values = this.control.value;
+    values.forEach((value) => {
+      if (this.options.filter((option) => option.value === value).length !== 0) {
+        newValues.push(value);
+      }
+    });
+    this.control.setValue(newValues, { emitEvent: false });
   }
 }

@@ -42,7 +42,6 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatButtonToggleChange } from '@angular/material/button-toggle';
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenuTrigger } from '@angular/material/menu';
-import { MatSelectChange } from '@angular/material/select';
 import { MatTableDataSource } from '@angular/material/table';
 import { EuiSelectOption, EuiSidesheetService } from '@elemental-ui/core';
 import { TranslateService } from '@ngx-translate/core';
@@ -137,7 +136,7 @@ export class DataSourceToolbarComponent implements OnChanges, OnInit, OnDestroy 
 
   /**
    * List of toolbar options, that should be visible.
-   * Values: 'search', 'sort, 'filter', 'groupBy', 'settings', 'selectedViewGroup', 'filterTree', 'filterWizard'.
+   * Values: 'search', 'sort', 'filter', 'groupBy', 'settings', 'selectedViewGroup', 'filterTree', 'filterWizard'.
    */
   @Input() public get options(): string[] {
     return Array.from(this.optionset);

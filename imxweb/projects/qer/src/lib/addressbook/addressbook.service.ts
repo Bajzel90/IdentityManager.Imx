@@ -26,9 +26,9 @@
 
 import { Injectable } from '@angular/core';
 
-import { PortalPersonAll } from 'imx-api-qer';
-import { DisplayColumns } from 'imx-qbm-dbts';
-import { DataSourceWrapper } from 'qbm';
+import { PortalPersonAll, V2ApiClientMethodFactory } from 'imx-api-qer';
+import { CollectionLoadParameters, DisplayColumns, EntityCollectionData, MethodDefinition, MethodDescriptor } from 'imx-qbm-dbts';
+import { DataSourceToolbarExportMethod, DataSourceWrapper } from 'qbm';
 import { PersonService } from '../person/person.service';
 import { AddressbookDetail } from './addressbook-detail/addressbook-detail.interface';
 
@@ -38,7 +38,7 @@ import { AddressbookDetail } from './addressbook-detail/addressbook-detail.inter
 export class AddressbookService {
   public abortController = new AbortController();
 
-  constructor(private readonly personService: PersonService) {}
+  constructor(private readonly personService: PersonService) { }
 
   public async createDataSourceWrapper(columnNames: string[], identifier?: string): Promise<DataSourceWrapper> {
     const entitySchema = this.personService.schemaPersonAll;
@@ -55,7 +55,8 @@ export class AddressbookService {
       {
         dataModel: await this.personService.getDataModel(),
         getGroupInfo: (parameters) => this.personService.getGroupInfo(parameters),
-        groupingFilterOptions: ['withmanager', 'orphaned'],
+        groupingFilterOptions: ['withmanager', 'orphaned'],        
+        exportMethod: (state) => this.exportPerson(state),
       },
       identifier
     );
@@ -73,6 +74,21 @@ export class AddressbookService {
         .filter((columnName) => entitySchema.Columns[columnName])
         .map((columnName) => personDetailEntity.GetColumn(columnName)),
       personUid,
+    };
+  }
+
+  public exportPerson(parameter: CollectionLoadParameters): DataSourceToolbarExportMethod {
+    const factory = new V2ApiClientMethodFactory();
+    return {
+      getMethod: (withProperties: string, PageSize?: number) => {
+        let method: MethodDescriptor<EntityCollectionData>;
+        if (PageSize) {
+          method = factory.portal_person_all_get({ ...parameter, withProperties, PageSize, StartIndex: 0 });
+        } else {
+          method = factory.portal_person_all_get({ ...parameter, withProperties });
+        }
+        return new MethodDefinition(method);
+      },
     };
   }
 

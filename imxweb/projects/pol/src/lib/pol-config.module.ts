@@ -47,7 +47,7 @@ const routes: Routes = [
   {
     path: 'compliance/policyviolations/approve',
     component: PolicyViolationsComponent,
-    canActivate: [RouteGuardService, PolicyAdminGuardService],
+    canActivate: [PolicyAdminGuardService],
     resolve: [RouteGuardService],
     data:{
       contextId: HELP_CONTEXTUAL.CompliancePolicyViolations
@@ -56,7 +56,7 @@ const routes: Routes = [
   {
     path: 'compliance/policyviolations',
     component: PolicyViolationsComponent,
-    canActivate: [RouteGuardService, PolicyAdminGuardService],
+    canActivate: [PolicyAdminGuardService],
     resolve: [RouteGuardService],
     data:{
       contextId: HELP_CONTEXTUAL.CompliancePolicyViolations
@@ -65,7 +65,7 @@ const routes: Routes = [
   {
     path: 'compliance/policies',
     component: PoliciesComponent,
-    canActivate: [RouteGuardService, PolicyAdminGuardService],
+    canActivate: [PolicyAdminGuardService],
     resolve: [RouteGuardService],
     data:{
       contextId: HELP_CONTEXTUAL.CompanyPolicies

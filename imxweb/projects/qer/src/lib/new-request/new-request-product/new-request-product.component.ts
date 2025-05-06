@@ -442,7 +442,7 @@ export class NewRequestProductComponent implements OnInit, OnDestroy {
 
   private getCollectionLoadParameter(): CollectionLoadParameters | ServiceItemParameters {
     let parameters: CollectionLoadParameters | ServiceItemParameters = {
-      ...this.productNavigationState,
+      ...this.dstSettings ? this.dstSettings.navigationState : this.productNavigationState,
       UID_Person: this.orchestration.recipients
         ? MultiValue.FromString(this.orchestration.recipients.value).GetValues().join(',')
         : undefined,

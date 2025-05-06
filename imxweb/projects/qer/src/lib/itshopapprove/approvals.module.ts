@@ -72,7 +72,7 @@ const routes: Routes = [
   {
     path: 'itshop/approvals',
     component: ApprovalsComponent,
-    canActivate: [RouteGuardService, RequestsFeatureGuardService],
+    canActivate: [RequestsFeatureGuardService],
     resolve: [RouteGuardService]
   },
 ];

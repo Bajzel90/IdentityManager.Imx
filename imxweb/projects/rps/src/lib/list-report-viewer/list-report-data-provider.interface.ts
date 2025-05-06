@@ -24,13 +24,14 @@
  *
  */
 
-import { CollectionLoadParameters, DataModel, EntitySchema, ExtendedTypedEntityCollection, GroupInfoData } from 'imx-qbm-dbts';
 import { ListReportContentData, PortalReportData } from 'imx-api-rps';
+import { CollectionLoadParameters, DataModel, EntitySchema, ExtendedTypedEntityCollection, GroupInfoData } from 'imx-qbm-dbts';
+import { DataSourceToolbarExportMethod } from 'qbm';
 
 /**
- * Provides methods for API interaction 
+ * Provides methods for API interaction
  * Is used for navigating though the data of a list report
- * 
+ *
  */
 export interface ListReportDataProvider {
   /**
@@ -57,4 +58,11 @@ export interface ListReportDataProvider {
    * @returns a {@link GroupInfoData} object
    */
   getGroupInfo: (parameters: { by?: string; def?: string } & CollectionLoadParameters) => Promise<GroupInfoData>;
+
+  /**
+   * Define an api method to export the list of report
+   * @param parameters navigation parameters
+   * @returns the correct export function
+   */
+  exportReports?: (parameters: CollectionLoadParameters) => DataSourceToolbarExportMethod;
 }

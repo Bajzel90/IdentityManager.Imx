@@ -1,8 +1,11 @@
 :host {
   display: flex;
-
+}
+.imx-editor-container{
+  width: 100%;
+  display: flex;
   /* place for hints and other indicators */
-  > .hint-container {
+  .hint-container {
     flex-grow: 0;
     margin: 0 0.5em 2em;
     align-items: center;
@@ -10,3 +13,6 @@
   }
 }
 
+.imx-hidden {
+  display: none;
+}

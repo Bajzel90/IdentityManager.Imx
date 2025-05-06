@@ -65,19 +65,11 @@ import { PatternDetailsSidesheetComponent } from './pattern-details-sidesheet/pa
 import { PatternItemsModule } from '../pattern-item-list/pattern-items.module';
 import { OptionalItemsSidesheetComponent } from './optional-items-sidesheet/optional-items-sidesheet.component';
 
-// const routes: Routes = [
-//   {
-//     path: 'productselection',
-//     component: ProductSelectionComponent,
-//     canActivate: [RouteGuardService, RequestsFeatureGuardService],
-//     resolve: [RouteGuardService]
-//   }
-// ];
 const routes: Routes = [
   {
     path: 'productselection',
     component: ProductSelectionComponent,
-    canActivate: [RouteGuardService, RequestsFeatureGuardService],
+    canActivate: [RequestsFeatureGuardService],
     resolve: [RouteGuardService],
     data:{
       contextId: HELP_CONTEXTUAL.NewRequest

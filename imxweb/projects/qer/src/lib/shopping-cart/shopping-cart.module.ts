@@ -68,7 +68,8 @@ const routes: Routes = [
   {
     path: 'shoppingcart',
     component: ShoppingCartComponent,
-    canActivate: [RouteGuardService, RequestsFeatureGuardService],
+    canActivate: [RequestsFeatureGuardService],
+    resolve: [RouteGuardService],
     data:{
       contextId: HELP_CONTEXTUAL.ShoppingCart
     }
@@ -76,7 +77,8 @@ const routes: Routes = [
   {
     path: 'shoppingcart/later',
     component: ShoppingCartForLaterComponent,
-    canActivate: [RouteGuardService, RequestsFeatureGuardService],
+    canActivate: [RequestsFeatureGuardService],
+    resolve: [RouteGuardService],
     data:{
       contextId: HELP_CONTEXTUAL.ShoppingCartForLater
     }
@@ -84,7 +86,8 @@ const routes: Routes = [
   {
     path: 'shoppingcart/empty',
     component: ShoppingCartEmptyComponent,
-    canActivate: [RouteGuardService, RequestsFeatureGuardService],
+    canActivate: [RequestsFeatureGuardService],
+    resolve: [RouteGuardService],
     data:{
       contextId: HELP_CONTEXTUAL.ShoppingCartEmpty
     }

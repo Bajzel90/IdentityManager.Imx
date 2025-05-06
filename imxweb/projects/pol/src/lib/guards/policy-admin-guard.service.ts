@@ -25,9 +25,9 @@
  */
 
 import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 
-import { AppConfigService } from 'qbm';
+import { AppConfigService, RouteGuardService } from 'qbm';
 import { PermissionsService } from '../admin/permissions.service';
 
 @Injectable({
@@ -37,16 +37,21 @@ export class PolicyAdminGuardService implements CanActivate {
   constructor(
     private readonly permissionService: PermissionsService,
     private readonly appConfig: AppConfigService,
+    private readonly routeGuardService: RouteGuardService,
     private readonly router: Router
-  ) { }
+  ) {}
 
-  public async canActivate(): Promise<boolean> {
-    const canApprovePolicyViolation = await this.permissionService.isQERPolicyAdmin()
-      || await this.permissionService.isQERPolicyOwner();
-    if (!canApprovePolicyViolation) {
-      this.router.navigate([this.appConfig.Config.routeConfig.start], { queryParams: {} });
-      return false;
+  public async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
+    if (await this.routeGuardService.canActivate(route, state)) {
+      const canApprovePolicyViolation =
+        (await this.permissionService.isQERPolicyAdmin()) || (await this.permissionService.isQERPolicyOwner());
+      if (!canApprovePolicyViolation) {
+        this.router.navigate([this.appConfig.Config.routeConfig.start]);
+      }
+      return canApprovePolicyViolation;
     }
-    return canApprovePolicyViolation;
+
+    this.router.navigate([this.appConfig.Config.routeConfig.login]);
+    return false;
   }
 }
