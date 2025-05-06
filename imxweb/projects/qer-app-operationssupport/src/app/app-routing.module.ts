@@ -133,7 +133,7 @@ const routes: Routes = [
   {
     path: 'SystemStatus',
     component: SystemStatusComponent,
-    canActivate: [RouteGuardService, SystemStatusRouteGuardService],
+    canActivate: [RouteGuardService],
     resolve: [RouteGuardService],
   },
   {

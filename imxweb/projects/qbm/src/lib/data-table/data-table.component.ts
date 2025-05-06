@@ -548,15 +548,15 @@ export class DataTableComponent<T> implements OnInit, OnChanges, AfterViewInit, 
    */
   public onGroupExpanded(group: GroupInfo): void {
     if (group && group.Count > 0) {
-      const groupingDisplay = group.Display[0].Display;
-      if (!this.groupData[groupingDisplay]) {
-        this.groupData[groupingDisplay] = {
+      const groupKey = this.getGroupKey(group);
+      if (!this.groupData[groupKey]) {
+        this.groupData[groupKey] = {
           data: undefined,
           settings: undefined,
           navigationState: undefined,
         };
       }
-      const groupData = this.groupData[groupingDisplay];
+      const groupData = this.groupData[groupKey];
       if (!groupData.navigationState) {
         groupData.navigationState = {
           PageSize: 25,
@@ -575,7 +575,7 @@ export class DataTableComponent<T> implements OnInit, OnChanges, AfterViewInit, 
 
       this.propagateNavigationSettingsToGroups(true);
       if (groupData.isExpanded) {
-        this.groupDataChanged.emit({ key: groupingDisplay, isInitial: false });
+        this.groupDataChanged.emit({ key: groupKey, isInitial: false });
       }
     }
   }
@@ -625,6 +625,16 @@ export class DataTableComponent<T> implements OnInit, OnChanges, AfterViewInit, 
    */
   public async overallGroupingStateChanged(newState: CollectionLoadParameters): Promise<void> {
     return this.updateGroupingState(this.settings?.groupData?.currentGrouping, newState);
+  }
+
+  
+  /**
+   * Calculates a key that is used for handling the grouping.
+   * @param group The group the key is calculated for. 
+   * @returns 
+   */
+  protected getGroupKey(group: GroupInfo): string {
+    return group?.Display[0].Display + (group?.Filters?.[0]?.Value1 ?? group?.Filters?.[0]?.Values[0]);
   }
 
   /**

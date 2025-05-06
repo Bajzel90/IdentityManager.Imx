@@ -25,35 +25,37 @@
  */
 
 import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 import { UserConfig } from 'imx-api-qer';
-import { QerApiService } from './qer-api-client.service';
+import { AppConfigService, RouteGuardService } from 'qbm';
 import { UserModelService } from './user/user-model.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class RequestsFeatureGuardService implements CanActivate {
-
   constructor(
-    private qerService: QerApiService,
-    private readonly userService: UserModelService,
-    private readonly router: Router
-  ) { }
+    private readonly appConfig: AppConfigService,
+    private readonly routeGuardService: RouteGuardService,
+    private readonly router: Router,
+    private readonly userService: UserModelService
+  ) {}
 
   public async getUserConfig(): Promise<UserConfig> {
     return this.userService.getUserConfig();
   }
 
-  public async canActivate(): Promise<boolean> {
-    const userConfig = await this.getUserConfig();
-
-    const featureEnabled = userConfig?.IsITShopEnabled;
-    if (featureEnabled) {
+  public async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
+    if (await this.routeGuardService.canActivate(route, state)) {
+      const userConfig = await this.getUserConfig();
+      const featureEnabled = userConfig?.IsITShopEnabled;
+      if (!featureEnabled) {
+        this.router.navigate([this.appConfig.Config.routeConfig.start]);
+      }
       return featureEnabled;
     }
 
-    this.router.navigate(['']);
-    return false;
+    this.router.navigate([this.appConfig.Config.routeConfig.login]);
+    return false; 
   }
 }

@@ -55,7 +55,7 @@ const routes: Routes = [
   {
     path: 'compliance/rules',
     component: RulesComponent,
-    canActivate: [RouteGuardService, ComplianceRulesGuardService],
+    canActivate: [ComplianceRulesGuardService],
     resolve: [RouteGuardService],
     data:{
       contextId: HELP_CONTEXTUAL.ComplianceRules
@@ -64,7 +64,7 @@ const routes: Routes = [
   {
     path: 'compliance/rulesviolations/approve',
     component: RulesViolationsComponent,
-    canActivate: [RouteGuardService, RuleViolationsGuardService],
+    canActivate: [RuleViolationsGuardService],
     resolve: [RouteGuardService],
     data:{
       contextId: HELP_CONTEXTUAL.ComplianceRulesViolationsApprove

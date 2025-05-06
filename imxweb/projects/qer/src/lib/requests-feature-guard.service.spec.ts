@@ -26,6 +26,7 @@
 
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { AppConfigService, RouteGuardService } from 'qbm';
 import { QerApiService } from './qer-api-client.service';
 import { RequestsFeatureGuardService } from './requests-feature-guard.service';
 import { StartComponent } from './wport/start/start.component';
@@ -34,28 +35,39 @@ import { UserModelService } from './user/user-model.service';
 describe('RequestsFeatureGuardService', () => {
   let service: RequestsFeatureGuardService;
 
-  const sessionServiceStub = {
-    client: {
-      portal_person_config_get: jasmine.createSpy('portal_person_config_get').and.returnValue(Promise.resolve([{}])),
-    },
-  };
-
   const userServiceStub = {
     getUserConfig: jasmine.createSpy('getUserConfig').and.returnValue(Promise.resolve([{}])),
   };
+
+  const routeGuardServiceStub = {
+    canActivate: jasmine.createSpy('canActivate').and.returnValue(Promise.resolve(true))
+  };
+
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [RouterTestingModule.withRoutes([{ path: '', component: StartComponent }])],
       providers: [
         {
-          provide: QerApiService,
-          useValue: sessionServiceStub,
-        },
-        {
           provide: UserModelService,
           useValue: userServiceStub,
         },
+        {
+          provide: RouteGuardService,
+          useValue: routeGuardServiceStub
+        },
+        {
+          provide: AppConfigService,
+          useValue: {
+            Config: {
+              Title: '',
+              routeConfig: {
+                start: 'dashboard',
+                login: ''
+              }
+            }
+          }
+        }
       ],
     });
     service = TestBed.inject(RequestsFeatureGuardService);
