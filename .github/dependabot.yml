@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # For Node.js dependencies
+  - package-ecosystem: "npm"
+    directory: "/imxweb" # Location of the package.json file
+    ignore:
+      # Ignore all major version bumps, only minor and security updates are considered
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+
+  # Optional: For GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: ".github/workflows" # Location of the .github/workflows directory
+    schedule:
+      interval: "weekly"

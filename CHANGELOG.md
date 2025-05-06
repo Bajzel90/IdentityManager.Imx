@@ -1,3 +1,15 @@
+### May, 7, 2025
+- 483102: Fixes an issue with deep links in the mail body of send inquiries.
+- 486602: Fixes an issue with editing old-style request property values by an approver.
+- 489974: Fixes an issue with the editing of request properties that contains at least on read-only property (Github issue).
+- 481877 (main work item: 481666): Adds more information for the approver to know exactly which violation needs to be exceptionally accepted.
+- 489994: Adds sorting, additional columns and export to list report viewer.
+- 488905: Fixes a tag that was closed before data-imx-identitier(Github issue).
+- 271561: Adds a CDR editor for bitmask properties.
+- 487718 (main work item: 487654): Fixes an issue with the export from the address book.
+- 488371: Fixes an issue with the first search for products on the New Request page.
+
+
 ### April 7, 2025
 - 486602: Fixes an issue with request properties that are defined using the old style and should be edited by the approver.
 - 484003: Fixes an issue with duplicated opions on My Responsibilities -> Identities.

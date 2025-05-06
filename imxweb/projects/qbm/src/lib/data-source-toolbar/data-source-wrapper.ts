@@ -34,6 +34,7 @@ import { DataSourceToolbarFilter } from './data-source-toolbar-filters.interface
 import { DataSourceToolbarGroupData } from './data-source-toolbar-groups.interface';
 import { DataSourceToolbarSettings } from './data-source-toolbar-settings';
 import { ClientPropertyForTableColumns } from './client-property-for-table-columns';
+import { DataSourceToolbarExportMethod } from './data-source-toolbar-export-method.interface';
 
 export class DataSourceWrapper<TEntity extends TypedEntity = TypedEntity, TExtendedData = any> {
   public readonly propertyDisplay: IClientProperty;
@@ -43,7 +44,8 @@ export class DataSourceWrapper<TEntity extends TypedEntity = TypedEntity, TExten
   private parameters: CollectionLoadParameters;
   private readonly filterOptions: DataSourceToolbarFilter[];
   private dataModel: DataModel;
-  private readonly groupData: DataSourceToolbarGroupData;
+  private readonly groupData: DataSourceToolbarGroupData;  
+  private readonly exportMethod: DataSourceToolbarExportMethod;
 
   constructor(
     private readonly getData: (parameters: CollectionLoadParameters, requestOpts?: ApiRequestOptions, isInitialLoad?: boolean) => Promise<ExtendedTypedEntityCollection<TEntity, TExtendedData>>,
@@ -58,6 +60,7 @@ export class DataSourceWrapper<TEntity extends TypedEntity = TypedEntity, TExten
       this.dataModel = dataModelWrapper.dataModel;
       this.filterOptions = dataModelWrapper.dataModel.Filters;
       this.groupData = this.createGroupData(dataModelWrapper);
+      this.exportMethod = !!dataModelWrapper?.exportMethod ? dataModelWrapper?.exportMethod(this.parameters) : null;
     }
   }
 
@@ -79,7 +82,8 @@ export class DataSourceWrapper<TEntity extends TypedEntity = TypedEntity, TExten
         navigationState: this.parameters,
         filters: this.filterOptions,
         groupData: this.groupData,
-        dataModel: this.dataModel
+        dataModel: this.dataModel,
+        exportMethod: this.exportMethod
       };
     }
 

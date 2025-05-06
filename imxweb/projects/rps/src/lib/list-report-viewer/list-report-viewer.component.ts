@@ -136,6 +136,9 @@ export class ListReportViewerComponent implements OnInit {
         this.logger.warn(this, 'There was a problem, loading the columns. The displays of the objects will be shown instead');
       }
 
+      const exportMethod = this.dataService.exportReports(this.navigationState);
+      exportMethod.initialColumns = displayedColumns.map((col) => col.ColumnName);
+
       this.dstSettings = {
         dataSource: data,
         entitySchema: this.entitySchema,
@@ -144,6 +147,7 @@ export class ListReportViewerComponent implements OnInit {
         dataModel: this.dataModel,
         groupData: this.groupData,
         filters: this.dataModel.Filters,
+        exportMethod,
       };
     } finally {
       isBusy.endBusy();

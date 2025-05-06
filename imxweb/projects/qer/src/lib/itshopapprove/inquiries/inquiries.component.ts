@@ -24,7 +24,7 @@
  *
  */
 
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { EuiSidesheetService } from '@elemental-ui/core';
 import { Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
@@ -41,6 +41,7 @@ import {
   ClientPropertyForTableColumns,
   BusyService,
   DataSourceToolbarViewConfig,
+  ConfirmationService,
 } from 'qbm';
 import { ApprovalsSidesheetComponent } from '../approvals-sidesheet/approvals-sidesheet.component';
 import { Approval } from '../approval';
@@ -60,6 +61,9 @@ export class InquiriesComponent implements OnInit, OnDestroy {
   public readonly entitySchema: EntitySchema;
   public approvalsCollection: ExtendedTypedEntityCollection<Approval, PwoExtendedData>;
   public hasData = false;
+
+  @Input() public uidHelperPwo: string;
+  private isInitialLoadedWithServer = false;
 
   @ViewChild(DataTableComponent) private readonly table: DataTableComponent<TypedEntity>;
 
@@ -83,7 +87,8 @@ export class InquiriesComponent implements OnInit, OnDestroy {
     private readonly translator: TranslateService,
     snackbar: SnackBarService,
     settingsService: SettingsService,
-    authentication: AuthenticationService
+    authentication: AuthenticationService,
+    private confirmation: ConfirmationService,
   ) {
     this.navigationState = { PageSize: settingsService.DefaultPageSize, StartIndex: 0 };
     this.entitySchema = approvalsService.PortalItshopApproveRequestsSchema;
@@ -134,6 +139,7 @@ export class InquiriesComponent implements OnInit, OnDestroy {
       this.viewConfig = await this.viewConfigService.getInitialDSTExtension(this.dataModel, this.viewConfigPath);
 
       await this.getData(undefined, true);
+
     } finally {
       isBusy.endBusy();
     }
@@ -149,16 +155,35 @@ export class InquiriesComponent implements OnInit, OnDestroy {
     if (parameters) {
       this.navigationState = parameters;
     }
+    if (this.uidHelperPwo) {
+      this.navigationState.uid_pwohelperpwo = this.uidHelperPwo;
+    }
 
     const isBusy = this.busyService.beginBusy();
 
     try {
-      this.approvalsCollection = isInitialLoad ? { totalCount: 0, Data: [] } : await this.approvalsService.get(this.navigationState);
+      this.approvalsCollection = isInitialLoad ? { totalCount: 0, Data: [] } : await this.getDataFromService();
       this.hasData = this.approvalsCollection?.totalCount > 0 || (this.navigationState.search ?? '') !== '';
+     
+
       this.updateTable();
     } finally {
       isBusy.endBusy();
     }
+  }
+
+  /**
+   * Extracts the server communication, because if the data is loaded for the first time, a special check is needed
+   * @returns Promise<ExtendedTypedEntityCollection<Approval, PwoExtendedData>>
+   */
+  private async getDataFromService(): Promise<ExtendedTypedEntityCollection<Approval, PwoExtendedData>> {
+    const result = await this.approvalsService.get(this.navigationState);
+    if(this.uidHelperPwo && result.totalCount === 0 && !this.isInitialLoadedWithServer){
+      this.confirmation.confirm({Message: '#LDS#The request could not be found. You may not have permission to view this request.'});
+    }
+    // checks, if the data is loaded from the server for the first time
+    this.isInitialLoadedWithServer = true;
+    return result;
   }
 
   public async updateConfig(config: ViewConfigData): Promise<void> {

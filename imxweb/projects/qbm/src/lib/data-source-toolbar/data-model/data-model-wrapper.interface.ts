@@ -24,12 +24,14 @@
  *
  */
 
-import { DataModel, GroupInfoData } from 'imx-qbm-dbts';
+import { CollectionLoadParameters, DataModel, GroupInfoData } from 'imx-qbm-dbts';
 import { GroupInfoLoadParameters } from './group-info-load-parameters.interface';
+import { DataSourceToolbarExportMethod } from '../data-source-toolbar-export-method.interface';
 
 export interface DataModelWrapper {
   dataModel: DataModel;
   getGroupInfo?: (parameters: GroupInfoLoadParameters) => Promise<GroupInfoData>;
   groupingFilterOptions?: string[];
-  groupingExcludedColumns?: string[];
+  groupingExcludedColumns?: string[];  
+  exportMethod?: (state: CollectionLoadParameters) => DataSourceToolbarExportMethod;
 }

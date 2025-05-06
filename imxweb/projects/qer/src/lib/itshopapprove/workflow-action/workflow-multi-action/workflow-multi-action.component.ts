@@ -31,6 +31,7 @@ import { DecisionStepSevice } from '../../decision-step.service';
 import { WorkflowActionEdit } from '../workflow-action-edit.interface';
 import { Approval } from '../../approval';
 import { ApprovalsService } from '../../approvals.service';
+import { ValType } from 'imx-qbm-dbts';
 
 /**
  * @ignore since this is only an internal component.
@@ -124,10 +125,23 @@ export class WorkflowMultiActionComponent implements OnInit {
       bulkItem.properties.unshift(step);
     }
 
+    const cRule = this.stepService.getAdditionalInfoCdr(item, item.pwoData, '#LDS#Compliance rule');
+    if (cRule != null) {
+      bulkItem.properties.unshift(cRule);
+    }
+
     if (item.parameterColumns) {
       const entityWrapper = await this.approvalService.getExtendedEntity(item.key);
       const interactiveColumns = entityWrapper.parameterCategoryColumns.map((item) => item.column);
-      interactiveColumns.forEach((pCol) => bulkItem.properties.push(this.data.approve ? new BaseCdr(pCol) : new BaseReadonlyCdr(pCol)));
+      interactiveColumns.forEach((pCol) => {
+          pCol.ColumnChanged.subscribe(() => {
+            const originalColumn = item.parameterColumns.find((elem) => elem.ColumnName === pCol.ColumnName);
+            if (originalColumn && originalColumn.GetMetadata().CanEdit()) {
+              originalColumn.PutValue(pCol.GetType() === ValType.Date ? new Date(pCol.GetValue()) : pCol.GetValue());
+            }
+          });
+        bulkItem.properties.push(this.data.approve ? new BaseCdr(pCol) : new BaseReadonlyCdr(pCol));
+      });
     }
 
     if (this.data.workflow) {

@@ -26,7 +26,7 @@
 
 import { Component, Input, OnInit } from '@angular/core';
 import { AbstractControl, UntypedFormGroup } from '@angular/forms';
-import { IEntity } from 'imx-qbm-dbts';
+import { IEntity, ValType } from 'imx-qbm-dbts';
 import { BaseCdr, BaseReadonlyCdr, BusyService, ColumnDependentReference } from 'qbm';
 import { Approval } from '../../approval';
 import { WorkflowActionEdit } from '../workflow-action-edit.interface';
@@ -72,6 +72,13 @@ export class WorkflowSingleActionComponent implements OnInit {
    * the display value of the current step
    */
   public currentStepCdr: ColumnDependentReference;
+
+
+  /**
+   * @ignore since this is only public because of databinding to the template
+   * The reference depending on the compliance violation of the request that is displayed during the decision.
+   */
+  public complianceCdr: ColumnDependentReference|undefined;
 
   /**
    * @ignore since this is only public because of databinding to the template
@@ -125,7 +132,10 @@ export class WorkflowSingleActionComponent implements OnInit {
         const interactiveColumns = entityWrapper.parameterCategoryColumns.map((item) => item.column);
         interactiveColumns.forEach((pCol) => {
           pCol.ColumnChanged.subscribe(() => {
-            this.request.parameterColumns.find((elem) => elem.ColumnName === pCol.ColumnName)?.PutValue(pCol.GetValue());
+            const originalColumn = this.request.parameterColumns.find((elem) => elem.ColumnName === pCol.ColumnName);
+            if (originalColumn && originalColumn.GetMetadata().CanEdit()) {
+              originalColumn.PutValue(pCol.GetType() === ValType.Date ? new Date(pCol.GetValue()) : pCol.GetValue());
+            }
           });
           this.requestParameterColumns.push(this.data.approve ? new BaseCdr(pCol) : new BaseReadonlyCdr(pCol));
         });
@@ -135,6 +145,7 @@ export class WorkflowSingleActionComponent implements OnInit {
     }
 
     this.currentStepCdr = this.stepService.getCurrentStepCdr(this.request, this.request.pwoData, '#LDS#Current approval step');
+    this.complianceCdr = this.stepService.getAdditionalInfoCdr(this.request, this.request.pwoData, '#LDS#Compliance rule');
   }
 
   /**
@@ -163,5 +174,4 @@ export class WorkflowSingleActionComponent implements OnInit {
       this.request.updateDirectDecisionTarget(entity);
     }
   }
-
 }
